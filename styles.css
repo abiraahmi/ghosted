@@ -1,0 +1,55 @@
+/* Import Figtree font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;800&display=swap');
+
+/* Apply Figtree as the default font for the document */
+body {
+  font-family: 'Figtree', sans-serif;
+  padding-top: 140px; /* Push content down to prevent overlap with fixed title & ToC */
+  margin: 0; /* Remove default margins */
+}
+
+/* Center align content using a container */
+.container {
+  max-width: 800px; /* Adjust as needed */
+  margin: 0 auto; /* Center content */
+  padding: 0 20px; /* Optional: Add side padding */
+}
+
+.title {
+  color: #56018D;
+}
+
+/* Make the Table of Contents sticky below the title */
+.toc {
+  position: fixed;
+  top: 60px; /* Adjust based on title height */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px; /* Match content width */
+  background-color: #f8f9fa; /* Light background */
+  z-index: 999; /* Ensure ToC stays below title but above content */
+  padding: 10px;
+  border-bottom: 2px solid #ddd; /* Optional: Add a subtle border */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional: Adds subtle shadow */
+}
+
+/* Adjust body padding to prevent overlap */
+body {
+  padding-top: 120px; /* Adjust based on title + ToC height */
+}
+
+/* Improve readability for paragraphs */
+p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Style hyperlinks */
+a {
+  color: #56018D; /* Dark purple links */
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

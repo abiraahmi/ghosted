@@ -1,0 +1,6 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^pkgdown\$
+^_pkgdown.yml$
+^styles.css$
+^LICENSE\.md$
