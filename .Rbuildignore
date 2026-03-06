@@ -1,6 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^pkgdown\$
-^_pkgdown.yml$
-^styles.css$
+^_pkgdown\.yml$
+^pkgdown$
+^docs$
+^styles\.css$
 ^LICENSE\.md$
+^\.github$
