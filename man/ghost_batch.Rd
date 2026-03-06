@@ -8,18 +8,16 @@ ghost_batch(
   input_dir,
   interviewers,
   interviewees = character(),
+  redact_other = character(),
+  redact_interviewer = FALSE,
+  include_common_names = FALSE,
+  redacted_token = "[REDACTED]",
+  add_blank_line_between_turns = TRUE,
   output_dir = NULL,
   recursive = FALSE,
   suffix = "_redacted",
   out_format = NULL,
-  redact_other = character(),
-  redact_interviewer = FALSE,
-  include_common_names = FALSE,
-  common_names_fun = NULL,
-  report_redacted = FALSE,
-  name_token = "[REDACTED]",
-  school_token = "[REDACTED]",
-  add_blank_line_between_turns = TRUE
+  report_redacted = FALSE
 )
 }
 \arguments{
@@ -28,6 +26,20 @@ ghost_batch(
 \item{interviewers}{Character vector of interviewer names.}
 
 \item{interviewees}{Character vector of interviewee/participant names.}
+
+\item{redact_other}{Other words/phrases to redact.}
+
+\item{redact_interviewer}{If \code{TRUE}, also redact interviewer names.}
+
+\item{include_common_names}{If \code{TRUE}, also redact a default list of common
+names (e.g., top US baby names, if available via
+\code{ghosted::common_names_default}).}
+
+\item{redacted_token}{Replacement token used for redactions (names and other
+phrases).}
+
+\item{add_blank_line_between_turns}{For VTT -> DOCX/TXT outputs, insert a
+blank line between turns.}
 
 \item{output_dir}{Folder to write outputs (default: \code{input_dir}).}
 
@@ -40,24 +52,7 @@ ghost_batch(
 request \code{"vtt"} for \code{.docx}/\code{.txt} inputs, cues are written without
 timestamps.}
 
-\item{redact_other}{Other words/phrases to redact.}
-
-\item{redact_interviewer}{If \code{TRUE}, also redact interviewer names.}
-
-\item{include_common_names}{If \code{TRUE}, also redact top US baby names (uses
-\code{common_names_fun}).}
-
-\item{common_names_fun}{Function used when \code{include_common_names = TRUE}
-(default: top 1000 US baby names from \code{babynames}).}
-
 \item{report_redacted}{If \code{TRUE}, print phrases found/redacted per file.}
-
-\item{name_token}{Replacement token for names.}
-
-\item{school_token}{Replacement token for schools/other phrases.}
-
-\item{add_blank_line_between_turns}{For VTT -> DOCX/TXT outputs, insert a
-blank line between turns.}
 }
 \value{
 A data.frame with \code{input_file}, \code{output_file}, and \code{status} columns.

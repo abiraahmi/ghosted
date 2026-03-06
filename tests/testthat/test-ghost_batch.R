@@ -86,12 +86,11 @@ test_that("ghost_batch covers conversions and common names", {
     input_dir    = td,
     interviewers = "Kailey Rivera",
     interviewees = "Alex Baloney",
+    redact_other = "Dragon",
     output_dir   = outd,
     out_format   = "txt",
     suffix       = "_C",
-    include_common_names = TRUE,
-    common_names_fun = function() c("Dragon")
+    include_common_names = FALSE
   )
   expect_true(all(grepl("_C\\.txt$", na.omit(res_txt$output_file))))
 })
-

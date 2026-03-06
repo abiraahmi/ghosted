@@ -1,6 +1,6 @@
 Package: ghosted
 Title: Deidentify & Batch Process Transcript Files
-Version: 0.0.1.9
+Version: 0.0.2.0
 Authors@R: 
     c(
       person("Abiraahmi", "Shankar", email = "abiraahmi.shankar@nyu.edu", role = c("aut", "cre"),

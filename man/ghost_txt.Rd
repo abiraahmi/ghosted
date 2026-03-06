@@ -8,14 +8,15 @@ ghost_txt(
   filepath,
   interviewers,
   interviewees = character(),
-  output_path = NULL,
   redact_other = character(),
   redact_interviewer = FALSE,
   include_common_names = FALSE,
-  common_names_fun = NULL,
-  report_redacted = FALSE,
-  name_token = "[REDACTED]",
-  school_token = "[REDACTED]"
+  redacted_token = "[REDACTED]",
+  add_blank_line_between_turns = TRUE,
+  output_path = NULL,
+  suffix = "_redacted",
+  out_format = c("txt", "docx", "vtt"),
+  report_redacted = FALSE
 )
 }
 \arguments{
@@ -25,38 +26,50 @@ ghost_txt(
 
 \item{interviewees}{Character vector of interviewee/participant names.}
 
-\item{output_path}{Path for the redacted \code{.txt}. If \code{NULL} (default), set to
-the same directory and base name as \code{filepath} with \verb{_redacted} before the
-extension (e.g. \code{notes.txt} -> \code{notes_redacted.txt}).}
-
 \item{redact_other}{Other words/phrases to redact.}
 
 \item{redact_interviewer}{If \code{TRUE}, also redact interviewer names.}
 
-\item{include_common_names}{If \code{TRUE}, also redact top US baby names (uses
-\code{common_names_fun}).}
+\item{include_common_names}{If \code{TRUE}, also redact a default list of common
+names (e.g., top US baby names, if available via
+\code{ghosted::common_names_default}).}
 
-\item{common_names_fun}{Function used when \code{include_common_names = TRUE}
-(default: top 1000 US baby names from \code{babynames}).}
+\item{redacted_token}{Replacement token used for redactions (names and other
+phrases).}
+
+\item{add_blank_line_between_turns}{Logical; for DOCX outputs, insert a blank
+line between turns.}
+
+\item{output_path}{Path for the redacted file. If \code{NULL} (default), set to the
+same directory and base name as \code{filepath} with \verb{_redacted} before the
+extension. The extension is chosen based on \code{out_format} (e.g.
+\code{notes.txt} -> \code{notes_redacted.txt} for \code{out_format = "txt"}, or
+\code{notes_redacted.docx} / \code{notes_redacted.vtt} otherwise).}
+
+\item{suffix}{Suffix to append to the base filename (default: \code{"_redacted"}).
+Only used when \code{output_path} is \code{NULL}.}
+
+\item{out_format}{One of \code{"txt"}, \code{"docx"}, or \code{"vtt"} controlling the output
+file type. Defaults to \code{"txt"}.}
 
 \item{report_redacted}{If \code{TRUE}, print to the R console which phrases were
 found and redacted (names and other).}
-
-\item{name_token}{Replacement token for names.}
-
-\item{school_token}{Replacement token for schools/other phrases.}
 }
 \value{
-The path to the written \code{.txt} file (invisibly).
+The path to the written output file (invisibly).
 }
 \description{
 Reads a \code{.txt} file line-by-line, applies in-function redaction, and writes a
-redacted text file. No speaker/text data.frame is created; the file is treated
-as a sequence of lines.
+redacted file. No speaker/text data.frame is created; the file is treated as a
+sequence of lines. You can choose the output format (TXT/DOCX/VTT) via
+\code{out_format} similar to \code{\link[=ghost_vtt]{ghost_vtt()}} and \code{\link[=ghost_batch]{ghost_batch()}}.
 }
 \examples{
 # Writes notes_redacted.txt in same folder, returns path:
 # ghost_txt("notes.txt", interviewers = "Dr. Smith", interviewees = "Jane Doe")
+# Write as DOCX instead of TXT:
+# ghost_txt("notes.txt", interviewers = "Dr. Smith", interviewees = "Jane Doe",
+#   out_format = "docx")
 # With common names and redaction report:
 # ghost_txt("notes.txt", interviewers = "Dr. Smith", interviewees = "Jane Doe",
 #   include_common_names = TRUE, report_redacted = TRUE)

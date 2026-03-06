@@ -1,29 +1,40 @@
 #' Read a text file and redact it (no data.frame)
 #'
 #' Reads a `.txt` file line-by-line, applies in-function redaction, and writes a
-#' redacted text file. No speaker/text data.frame is created; the file is treated
-#' as a sequence of lines.
+#' redacted file. No speaker/text data.frame is created; the file is treated as a
+#' sequence of lines. You can choose the output format (TXT/DOCX/VTT) via
+#' `out_format` similar to [ghost_vtt()] and [ghost_batch()].
 #'
 #' @param filepath Path to a `.txt` file.
 #' @param interviewers Character vector of interviewer names.
 #' @param interviewees Character vector of interviewee/participant names.
-#' @param output_path Path for the redacted `.txt`. If `NULL` (default), set to
-#'   the same directory and base name as `filepath` with `_redacted` before the
-#'   extension (e.g. `notes.txt` -> `notes_redacted.txt`).
 #' @param redact_other Other words/phrases to redact.
 #' @param redact_interviewer If `TRUE`, also redact interviewer names.
-#' @param include_common_names If `TRUE`, also redact top US baby names (uses
-#'   `common_names_fun`).
-#' @param common_names_fun Function used when `include_common_names = TRUE`
-#'   (default: top 1000 US baby names from `babynames`).
+#' @param include_common_names If `TRUE`, also redact a default list of common
+#'   names (e.g., top US baby names, if available via
+#'   `ghosted::common_names_default`).
+#' @param redacted_token Replacement token used for redactions (names and other
+#'   phrases).
+#' @param add_blank_line_between_turns Logical; for DOCX outputs, insert a blank
+#'   line between turns.
+#' @param output_path Path for the redacted file. If `NULL` (default), set to the
+#'   same directory and base name as `filepath` with `_redacted` before the
+#'   extension. The extension is chosen based on `out_format` (e.g.
+#'   `notes.txt` -> `notes_redacted.txt` for `out_format = "txt"`, or
+#'   `notes_redacted.docx` / `notes_redacted.vtt` otherwise).
+#' @param suffix Suffix to append to the base filename (default: `"_redacted"`).
+#'   Only used when `output_path` is `NULL`.
+#' @param out_format One of `"txt"`, `"docx"`, or `"vtt"` controlling the output
+#'   file type. Defaults to `"txt"`.
 #' @param report_redacted If `TRUE`, print to the R console which phrases were
 #'   found and redacted (names and other).
-#' @param name_token Replacement token for names.
-#' @param school_token Replacement token for schools/other phrases.
-#' @return The path to the written `.txt` file (invisibly).
+#' @return The path to the written output file (invisibly).
 #' @examples
 #' # Writes notes_redacted.txt in same folder, returns path:
 #' # ghost_txt("notes.txt", interviewers = "Dr. Smith", interviewees = "Jane Doe")
+#' # Write as DOCX instead of TXT:
+#' # ghost_txt("notes.txt", interviewers = "Dr. Smith", interviewees = "Jane Doe",
+#' #   out_format = "docx")
 #' # With common names and redaction report:
 #' # ghost_txt("notes.txt", interviewers = "Dr. Smith", interviewees = "Jane Doe",
 #' #   include_common_names = TRUE, report_redacted = TRUE)
@@ -31,14 +42,15 @@
 ghost_txt <- function(filepath,
                       interviewers,
                       interviewees = character(),
-                      output_path = NULL,
                       redact_other = character(),
                       redact_interviewer = FALSE,
                       include_common_names = FALSE,
-                      common_names_fun = NULL,
-                      report_redacted = FALSE,
-                      name_token = "[REDACTED]",
-                      school_token = "[REDACTED]") {
+                      redacted_token = "[REDACTED]",
+                      add_blank_line_between_turns = TRUE,
+                      output_path = NULL,
+                      suffix = "_redacted",
+                      out_format = c("txt", "docx", "vtt"),
+                      report_redacted = FALSE) {
 
   if (!is.character(filepath) || length(filepath) != 1 || !nzchar(filepath)) {
     stop("Provide a single 'filepath' to a .txt file")
@@ -109,11 +121,9 @@ ghost_txt <- function(filepath,
   interviewees <- interviewees[!base::is.na(interviewees) & base::nzchar(interviewees)]
   redact_other <- redact_other[!base::is.na(redact_other) & base::nzchar(redact_other)]
   if (base::isTRUE(include_common_names)) {
-    if (base::is.null(common_names_fun)) {
-      common_names_fun <- base::try(base::get("common_names_default", envir = base::asNamespace("ghosted")), silent = TRUE)
-    }
-    if (base::is.function(common_names_fun)) {
-      redact_other <- base::unique(base::c(redact_other, common_names_fun()))
+    cnf <- base::try(base::get("common_names_default", envir = base::asNamespace("ghosted")), silent = TRUE)
+    if (base::is.function(cnf)) {
+      redact_other <- base::unique(base::c(redact_other, cnf()))
     }
   }
 
@@ -153,8 +163,8 @@ ghost_txt <- function(filepath,
   lines <- leading_speaker_label(lines, interviewers, "Interviewer")
   lines <- leading_speaker_label(lines, interviewees, "Participant")
 
-  redacted <- redact_phrases(lines, names_all_text, name_token)
-  redacted <- redact_phrases(redacted, other_all, school_token)
+  redacted <- redact_phrases(lines, names_all_text, redacted_token)
+  redacted <- redact_phrases(redacted, other_all, redacted_token)
 
   if (isTRUE(report_redacted)) {
     if (length(found_names)) message("Names redacted: ", paste(found_names, collapse = ", "))
@@ -162,17 +172,43 @@ ghost_txt <- function(filepath,
   }
 
   # 3) Determine output path
+  fmt <- base::match.arg(out_format)
   if (is.null(output_path)) {
     base <- tools::file_path_sans_ext(basename(filepath))
-    output_path <- file.path(dirname(filepath), paste0(base, "_redacted.txt"))
+    ext <- base::switch(fmt, txt = ".txt", docx = ".docx", vtt = ".vtt")
+    if (!base::is.character(suffix) || base::length(suffix) != 1) suffix <- ""
+    output_path <- file.path(dirname(filepath), paste0(base, suffix, ext))
   }
   out_dir <- dirname(output_path)
   if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
-  # 4) Write redacted lines to a new text file
-  con <- base::file(output_path, open = "w", encoding = "UTF-8")
-  on.exit(base::close(con), add = TRUE)
-  base::writeLines(redacted, con = con, sep = "\n", useBytes = TRUE)
+  # 4) Write in requested format
+  if (base::identical(fmt, "txt")) {
+    con <- base::file(output_path, open = "w", encoding = "UTF-8")
+    base::on.exit(base::close(con), add = TRUE)
+    base::writeLines(redacted, con = con, sep = "\n", useBytes = TRUE)
+  } else if (base::identical(fmt, "docx")) {
+    doc <- officer::read_docx()
+    if (base::length(redacted)) {
+      for (ln in redacted) {
+        doc <- officer::body_add_par(doc, base::ifelse(base::is.na(ln), "", ln), style = "Normal")
+        if (add_blank_line_between_turns) doc <- officer::body_add_par(doc, "", style = "Normal")
+      }
+    }
+    print(doc, target = output_path)
+  } else if (base::identical(fmt, "vtt")) {
+    con <- base::file(output_path, open = "w", encoding = "UTF-8")
+    base::on.exit(base::close(con), add = TRUE)
+    base::writeLines("WEBVTT", con); base::writeLines("", con)
+    ncue <- base::length(redacted)
+    for (k in base::seq_len(ncue)) {
+      base::writeLines(c(base::as.character(k),
+                   base::ifelse(base::is.na(redacted[k]), "", redacted[k]),
+                   ""), con)
+    }
+  } else {
+    base::stop("Unsupported out_format: ", fmt)
+  }
 
   base::invisible(output_path)
 }

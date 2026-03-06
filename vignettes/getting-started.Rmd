@@ -30,7 +30,7 @@ The ghosted package provides four high-level helpers to de‑identify transcript
 
 Note: To ensure successful CRAN checks, examples avoid file I/O and instead use small in‑memory objects.
 
-## One‑file workflows (no data.frame needed)
+## One‑file workflows
 
 ```{r, eval=FALSE}
 # VTT → DOCX

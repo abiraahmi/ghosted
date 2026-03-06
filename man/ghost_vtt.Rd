@@ -8,17 +8,15 @@ ghost_vtt(
   filepath,
   interviewers,
   interviewees = character(),
-  output_dir = NULL,
-  out_format = c("vtt", "docx", "txt"),
-  suffix = "_redacted",
   redact_other = character(),
   redact_interviewer = FALSE,
   include_common_names = FALSE,
-  common_names_fun = NULL,
-  report_redacted = FALSE,
-  name_token = "[REDACTED]",
-  school_token = "[REDACTED]",
-  add_blank_line_between_turns = TRUE
+  redacted_token = "[REDACTED]",
+  add_blank_line_between_turns = TRUE,
+  output_path = NULL,
+  suffix = "_redacted",
+  out_format = c("vtt", "docx", "txt"),
+  report_redacted = FALSE
 )
 }
 \arguments{
@@ -28,34 +26,31 @@ ghost_vtt(
 
 \item{interviewees}{Character vector of interviewee/participant names.}
 
-\item{output_dir}{Output folder. If \code{NULL}, uses the folder of \code{filepath}.
-The output filename is derived from the input base name with \code{suffix}
-and an extension based on \code{out_format}.}
-
-\item{out_format}{One of \code{"vtt"}, \code{"docx"}, or \code{"txt"} controlling the
-output file extension.}
-
-\item{suffix}{Suffix to append to the base filename (default: \code{"_redacted"}).}
-
 \item{redact_other}{Other words/phrases to redact.}
 
 \item{redact_interviewer}{If \code{TRUE}, also redact interviewer names in the
 transcript text. Interviewer names in the speaker field are always redacted.}
 
-\item{include_common_names}{If \code{TRUE}, also redact top US baby names (uses
-\code{common_names_fun}).}
+\item{include_common_names}{If \code{TRUE}, also redact a default list of common
+names (e.g., top US baby names, if available via
+\code{ghosted::common_names_default}).}
 
-\item{common_names_fun}{Function used when \code{include_common_names = TRUE}
-(default: top 1000 US baby names from \code{babynames}).}
-
-\item{report_redacted}{If \code{TRUE}, prints which phrases were found and redacted.}
-
-\item{name_token}{Replacement token for names.}
-
-\item{school_token}{Replacement token for schools/other phrases.}
+\item{redacted_token}{Replacement token used for redactions (names and other
+phrases).}
 
 \item{add_blank_line_between_turns}{Logical; for DOCX/TXT outputs, insert a
 blank line between turns.}
+
+\item{output_path}{Full path for the output file. If \code{NULL}, uses the folder
+of \code{filepath} with the input base name plus \code{suffix} and an extension based
+on \code{out_format}.}
+
+\item{suffix}{Suffix to append to the base filename (default: \code{"_redacted"}).}
+
+\item{out_format}{One of \code{"vtt"}, \code{"docx"}, or \code{"txt"} controlling the
+output file extension.}
+
+\item{report_redacted}{If \code{TRUE}, prints which phrases were found and redacted.}
 }
 \value{
 Invisibly, the output path written.

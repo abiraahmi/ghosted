@@ -12,24 +12,23 @@
 #' @param filepath Path to a `.vtt` file.
 #' @param interviewers Character vector of interviewer names.
 #' @param interviewees Character vector of interviewee/participant names.
-#' @param output_dir Output folder. If `NULL`, uses the folder of `filepath`.
-#'   The output filename is derived from the input base name with `suffix`
-#'   and an extension based on `out_format`.
-#' @param out_format One of `"vtt"`, `"docx"`, or `"txt"` controlling the
-#'   output file extension.
-#' @param suffix Suffix to append to the base filename (default: `"_redacted"`).
 #' @param redact_other Other words/phrases to redact.
 #' @param redact_interviewer If `TRUE`, also redact interviewer names in the
 #'   transcript text. Interviewer names in the speaker field are always redacted.
-#' @param include_common_names If `TRUE`, also redact top US baby names (uses
-#'   `common_names_fun`).
-#' @param common_names_fun Function used when `include_common_names = TRUE`
-#'   (default: top 1000 US baby names from `babynames`).
-#' @param report_redacted If `TRUE`, prints which phrases were found and redacted.
-#' @param name_token Replacement token for names.
-#' @param school_token Replacement token for schools/other phrases.
+#' @param include_common_names If `TRUE`, also redact a default list of common
+#'   names (e.g., top US baby names, if available via
+#'   `ghosted::common_names_default`).
+#' @param redacted_token Replacement token used for redactions (names and other
+#'   phrases).
 #' @param add_blank_line_between_turns Logical; for DOCX/TXT outputs, insert a
 #'   blank line between turns.
+#' @param output_path Full path for the output file. If `NULL`, uses the folder
+#'   of `filepath` with the input base name plus `suffix` and an extension based
+#'   on `out_format`.
+#' @param suffix Suffix to append to the base filename (default: `"_redacted"`).
+#' @param out_format One of `"vtt"`, `"docx"`, or `"txt"` controlling the
+#'   output file extension.
+#' @param report_redacted If `TRUE`, prints which phrases were found and redacted.
 #' @return Invisibly, the output path written.
 #' @examples
 #' # Write redacted VTT next to source:
@@ -41,17 +40,15 @@
 ghost_vtt <- function(filepath,
                            interviewers,
                            interviewees = character(),
-                           output_dir = NULL,
-                           out_format = c("vtt", "docx", "txt"),
-                           suffix = "_redacted",
                            redact_other = character(),
                            redact_interviewer = FALSE,
                            include_common_names = FALSE,
-                           common_names_fun = NULL,
-                           report_redacted = FALSE,
-                           name_token = "[REDACTED]",
-                           school_token = "[REDACTED]",
-                           add_blank_line_between_turns = TRUE) {
+                           redacted_token = "[REDACTED]",
+                           add_blank_line_between_turns = TRUE,
+                           output_path = NULL,
+                           suffix = "_redacted",
+                           out_format = c("vtt", "docx", "txt"),
+                           report_redacted = FALSE) {
 
   if (!is.character(filepath) || length(filepath) != 1 || !nzchar(filepath)) {
     stop("Provide a single 'filepath' to a .vtt file")
@@ -158,11 +155,9 @@ ghost_vtt <- function(filepath,
   interviewees <- interviewees[!base::is.na(interviewees) & base::nzchar(interviewees)]
   redact_other <- redact_other[!base::is.na(redact_other) & base::nzchar(redact_other)]
   if (base::isTRUE(include_common_names)) {
-    if (base::is.null(common_names_fun)) {
-      common_names_fun <- base::try(base::get("common_names_default", envir = base::asNamespace("ghosted")), silent = TRUE)
-    }
-    if (base::is.function(common_names_fun)) {
-      redact_other <- base::unique(base::c(redact_other, common_names_fun()))
+    cnf <- base::try(base::get("common_names_default", envir = base::asNamespace("ghosted")), silent = TRUE)
+    if (base::is.function(cnf)) {
+      redact_other <- base::unique(base::c(redact_other, cnf()))
     }
   }
 
@@ -225,8 +220,8 @@ ghost_vtt <- function(filepath,
       # Label leading names (preserve <v ...> tags)
       tvec <- leading_speaker_label(tvec, int_set, "Interviewer")
       tvec <- leading_speaker_label(tvec, ive_set, "Participant")
-      tvec <- redact_phrases(tvec, names_all_text, name_token)
-      tvec <- redact_phrases(tvec, other_all, school_token)
+      tvec <- redact_phrases(tvec, names_all_text, redacted_token)
+      tvec <- redact_phrases(tvec, other_all, redacted_token)
       cues[[k]]$text <- tvec
     }
   }
@@ -236,12 +231,12 @@ ghost_vtt <- function(filepath,
   }
 
   # 3) Determine output path
-  # Build output path from folder + format
   base <- tools::file_path_sans_ext(basename(filepath))
   ext <- switch(fmt, vtt = ".vtt", docx = ".docx", txt = ".txt")
-  if (is.null(output_dir)) output_dir <- dirname(filepath)
-  if (!is.character(suffix) || length(suffix) != 1) suffix <- ""
-  output_path <- file.path(output_dir, paste0(base, suffix, ext))
+  if (is.null(output_path)) {
+    if (!is.character(suffix) || length(suffix) != 1) suffix <- ""
+    output_path <- file.path(dirname(filepath), paste0(base, suffix, ext))
+  }
   out_dir <- dirname(output_path)
   if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 

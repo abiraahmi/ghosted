@@ -39,8 +39,8 @@ test_that("ghost_txt default path and common names redaction", {
     interviewers = "Kailey Rivera",
     interviewees = "Alex Baloney",
     output_path = NULL,
-    include_common_names = TRUE,
-    common_names_fun = function() c("Dragon"),
+    redact_other = "Dragon",
+    include_common_names = FALSE,
     report_redacted = TRUE
   )
   expect_true(file.exists(res))
@@ -49,7 +49,48 @@ test_that("ghost_txt default path and common names redaction", {
   # Leading replacements applied
   expect_true(grepl("^Interviewer\\s*-", out[1]))
   expect_true(grepl("^Participant", out[2]))
-  # "Dragon" redacted by common_names_fun
+  # "Dragon" redacted via redact_other
   expect_true(grepl("\\[REDACTED\\]", paste(out, collapse = "\n")))
 })
 
+test_that("ghost_txt can write VTT with header and tokens", {
+  td <- tempfile("gtxt_vtt_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "s.txt")
+  writeLines(c("Kailey Rivera: Hello Dragon", "Alex Baloney: Hi"), infile, useBytes = TRUE)
+
+  vtt_out <- file.path(td, "s_redacted.vtt")
+  res <- ghost_txt(
+    filepath = infile,
+    interviewers = "Kailey Rivera",
+    interviewees = "Alex Baloney",
+    redact_other = "Dragon",
+    redacted_token = "[X]",
+    out_format = "vtt",
+    output_path = vtt_out
+  )
+  expect_true(file.exists(res))
+  got <- readLines(res, warn = FALSE)
+  expect_identical(trimws(got[1]), "WEBVTT")
+  expect_true(any(grepl("^1$|^2$", got)))
+  expect_true(any(grepl("Interviewer|Participant", got)))
+  expect_false(any(grepl("Kailey|Alex|Dragon", got, ignore.case = TRUE)))
+  expect_true(any(grepl("\\[X\\]", got)))
+})
+
+test_that("ghost_txt report_redacted emits messages", {
+  td <- tempfile("gtxt_msg_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "m.txt")
+  writeLines(c("Kailey Rivera: Hello Dragon", "Text mentions Alex"), infile, useBytes = TRUE)
+
+  expect_message(
+    ghost_txt(
+      filepath = infile,
+      interviewers = "Kailey Rivera",
+      interviewees = "Alex Baloney",
+      redact_other = "Dragon",
+      report_redacted = TRUE,
+      output_path = file.path(td, "m_out.txt")
+    ),
+    regexp = "Names redacted|Other phrases redacted"
+  )
+})

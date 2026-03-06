@@ -28,9 +28,8 @@ test_that("ghost_vtt preserves timestamps and relabels voice tags", {
     filepath = vtt,
     interviewers = "Kailey Rivera",
     interviewees = "Alex Baloney",
-    output_dir = dirname(out),
-    out_format = "vtt",
-    suffix = "_t"
+    output_path = out,
+    out_format = "vtt"
   )
   expect_true(file.exists(res))
   got <- readLines(res, warn = FALSE)
@@ -62,8 +61,7 @@ test_that("ghost_vtt writes txt and relabels multiple patterns", {
     interviewers = "Kailey Rivera",
     interviewees = "Alex Baloney",
     out_format = "txt",
-    output_dir = td,
-    suffix = "_out"
+    output_path = file.path(td, "m_out.txt")
   )
   expect_true(file.exists(res))
   out <- readLines(res, warn = FALSE)
@@ -84,8 +82,7 @@ test_that("ghost_vtt can write docx when officer available", {
     interviewers = "Kailey Rivera",
     interviewees = "Alex Baloney",
     out_format = "docx",
-    output_dir = td,
-    suffix = "_d"
+    output_path = file.path(td, "n_d.docx")
   )
   expect_true(file.exists(res))
 })
@@ -101,7 +98,8 @@ test_that("ghost_vtt report_redacted emits messages", {
   expect_silent({
     # run once to create file
     ghost_vtt(vtt, interviewers = "Kailey Rivera", interviewees = "Alex Baloney",
-              output_dir = tempdir(), out_format = "vtt", suffix = "_r")
+              output_path = file.path(tempdir(), paste0(basename(tools::file_path_sans_ext(vtt)), "_r.vtt")),
+              out_format = "vtt")
   })
 
   # Now with report_redacted = TRUE and other phrase set
@@ -111,8 +109,8 @@ test_that("ghost_vtt report_redacted emits messages", {
               interviewees = "Alex Baloney",
               redact_other = "Dragon",
               report_redacted = TRUE,
-              output_dir = tempdir(), out_format = "vtt", suffix = "_r2"),
+              output_path = file.path(tempdir(), paste0(basename(tools::file_path_sans_ext(vtt)), "_r2.vtt")),
+              out_format = "vtt"),
     regexp = "Names redacted|Other phrases redacted"
   )
 })
-

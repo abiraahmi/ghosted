@@ -13,6 +13,15 @@
 #' @param input_dir Folder containing transcripts.
 #' @param interviewers Character vector of interviewer names.
 #' @param interviewees Character vector of interviewee/participant names.
+#' @param redact_other Other words/phrases to redact.
+#' @param redact_interviewer If `TRUE`, also redact interviewer names.
+#' @param include_common_names If `TRUE`, also redact a default list of common
+#'   names (e.g., top US baby names, if available via
+#'   `ghosted::common_names_default`).
+#' @param redacted_token Replacement token used for redactions (names and other
+#'   phrases).
+#' @param add_blank_line_between_turns For VTT -> DOCX/TXT outputs, insert a
+#'   blank line between turns.
 #' @param output_dir Folder to write outputs (default: `input_dir`).
 #' @param recursive If `TRUE`, include files in subdirectories.
 #' @param suffix Suffix to append to each output filename (default: `_redacted`).
@@ -20,17 +29,7 @@
 #'   `"txt"`. If `NULL` (default), each file keeps its original format. If you
 #'   request `"vtt"` for `.docx`/`.txt` inputs, cues are written without
 #'   timestamps.
-#' @param redact_other Other words/phrases to redact.
-#' @param redact_interviewer If `TRUE`, also redact interviewer names.
-#' @param include_common_names If `TRUE`, also redact top US baby names (uses
-#'   `common_names_fun`).
-#' @param common_names_fun Function used when `include_common_names = TRUE`
-#'   (default: top 1000 US baby names from `babynames`).
 #' @param report_redacted If `TRUE`, print phrases found/redacted per file.
-#' @param name_token Replacement token for names.
-#' @param school_token Replacement token for schools/other phrases.
-#' @param add_blank_line_between_turns For VTT -> DOCX/TXT outputs, insert a
-#'   blank line between turns.
 #' @return A data.frame with `input_file`, `output_file`, and `status` columns.
 #'   Invisibly returned.
 #' @examples
@@ -44,18 +43,16 @@
 ghost_batch <- function(input_dir,
                         interviewers,
                         interviewees = character(),
+                        redact_other = character(),
+                        redact_interviewer = FALSE,
+                        include_common_names = FALSE,
+                        redacted_token = "[REDACTED]",
+                        add_blank_line_between_turns = TRUE,
                         output_dir = NULL,
                         recursive = FALSE,
                         suffix = "_redacted",
                         out_format = NULL,
-                        redact_other = character(),
-                        redact_interviewer = FALSE,
-                        include_common_names = FALSE,
-                        common_names_fun = NULL,
-                        report_redacted = FALSE,
-                        name_token = "[REDACTED]",
-                        school_token = "[REDACTED]",
-                        add_blank_line_between_turns = TRUE) {
+                        report_redacted = FALSE) {
 
   if (!is.character(input_dir) || length(input_dir) != 1 || !nzchar(input_dir)) {
     stop("Provide a single 'input_dir' path")
@@ -103,16 +100,14 @@ ghost_batch <- function(input_dir,
           filepath = f,
           interviewers = interviewers,
           interviewees = interviewees,
-          output_dir = output_dir,
+          output_path = out_path,
           out_format = if (is.null(fmt)) "vtt" else fmt,
           suffix = suffix,
           redact_other = redact_other,
           redact_interviewer = redact_interviewer,
           include_common_names = include_common_names,
-          common_names_fun = common_names_fun,
           report_redacted = report_redacted,
-          name_token = name_token,
-          school_token = school_token,
+          redacted_token = redacted_token,
           add_blank_line_between_turns = add_blank_line_between_turns
         )
       } else if (identical(ext, "docx")) {
@@ -126,10 +121,8 @@ ghost_batch <- function(input_dir,
             redact_other = redact_other,
             redact_interviewer = redact_interviewer,
             include_common_names = include_common_names,
-            common_names_fun = common_names_fun,
             report_redacted = report_redacted,
-            name_token = name_token,
-            school_token = school_token
+            redacted_token = redacted_token
           )
         } else if (!is.null(fmt) && fmt == "txt") {
           # Redact to temp DOCX then convert paragraphs to TXT
@@ -142,10 +135,8 @@ ghost_batch <- function(input_dir,
             redact_other = redact_other,
             redact_interviewer = redact_interviewer,
             include_common_names = include_common_names,
-            common_names_fun = common_names_fun,
             report_redacted = report_redacted,
-            name_token = name_token,
-            school_token = school_token
+            redacted_token = redacted_token
           )
           ds <- officer::docx_summary(officer::read_docx(tmp))
           if ("content_type" %in% names(ds)) ds <- ds[ds$content_type == "paragraph", , drop = FALSE]
@@ -170,10 +161,8 @@ ghost_batch <- function(input_dir,
             redact_other = redact_other,
             redact_interviewer = redact_interviewer,
             include_common_names = include_common_names,
-            common_names_fun = common_names_fun,
             report_redacted = report_redacted,
-            name_token = name_token,
-            school_token = school_token
+            redacted_token = redacted_token
           )
           ds <- officer::docx_summary(officer::read_docx(tmp))
           if ("content_type" %in% names(ds)) ds <- ds[ds$content_type == "paragraph", , drop = FALSE]
@@ -203,10 +192,8 @@ ghost_batch <- function(input_dir,
             redact_other = redact_other,
             redact_interviewer = redact_interviewer,
             include_common_names = include_common_names,
-            common_names_fun = common_names_fun,
             report_redacted = report_redacted,
-            name_token = name_token,
-            school_token = school_token
+            redacted_token = redacted_token
           )
         } else if (!is.null(fmt) && fmt == "docx") {
           # Redact to temp TXT then convert to DOCX paragraphs
@@ -219,10 +206,8 @@ ghost_batch <- function(input_dir,
             redact_other = redact_other,
             redact_interviewer = redact_interviewer,
             include_common_names = include_common_names,
-            common_names_fun = common_names_fun,
             report_redacted = report_redacted,
-            name_token = name_token,
-            school_token = school_token
+            redacted_token = redacted_token
           )
           lines <- base::tryCatch(base::readLines(tmp, warn = FALSE, encoding = "UTF-8"), error = function(e) base::character())
           doc <- officer::read_docx()
@@ -245,10 +230,8 @@ ghost_batch <- function(input_dir,
             redact_other = redact_other,
             redact_interviewer = redact_interviewer,
             include_common_names = include_common_names,
-            common_names_fun = common_names_fun,
             report_redacted = report_redacted,
-            name_token = name_token,
-            school_token = school_token
+            redacted_token = redacted_token
           )
           lines <- base::tryCatch(base::readLines(tmp, warn = FALSE, encoding = "UTF-8"), error = function(e) base::character())
           con <- base::file(out_path, open = "w", encoding = "UTF-8")
