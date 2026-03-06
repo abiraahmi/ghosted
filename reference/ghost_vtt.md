@@ -12,17 +12,15 @@ ghost_vtt(
   filepath,
   interviewers,
   interviewees = character(),
-  output_dir = NULL,
-  out_format = c("vtt", "docx", "txt"),
-  suffix = "_redacted",
   redact_other = character(),
   redact_interviewer = FALSE,
   include_common_names = FALSE,
-  common_names_fun = NULL,
-  report_redacted = FALSE,
-  name_token = "[REDACTED]",
-  school_token = "[REDACTED]",
-  add_blank_line_between_turns = TRUE
+  redacted_token = "[REDACTED]",
+  add_blank_line_between_turns = TRUE,
+  output_path = NULL,
+  suffix = "_redacted",
+  out_format = c("vtt", "docx", "txt"),
+  report_redacted = FALSE
 )
 ```
 
@@ -40,21 +38,6 @@ ghost_vtt(
 
   Character vector of interviewee/participant names.
 
-- output_dir:
-
-  Output folder. If `NULL`, uses the folder of `filepath`. The output
-  filename is derived from the input base name with `suffix` and an
-  extension based on `out_format`.
-
-- out_format:
-
-  One of `"vtt"`, `"docx"`, or `"txt"` controlling the output file
-  extension.
-
-- suffix:
-
-  Suffix to append to the base filename (default: `"_redacted"`).
-
 - redact_other:
 
   Other words/phrases to redact.
@@ -66,28 +49,35 @@ ghost_vtt(
 
 - include_common_names:
 
-  If `TRUE`, also redact top US baby names (uses `common_names_fun`).
+  If `TRUE`, also redact a default list of common names (e.g., top US
+  baby names, if available via `ghosted::common_names_default`).
 
-- common_names_fun:
+- redacted_token:
 
-  Function used when `include_common_names = TRUE` (default: top 1000 US
-  baby names from `babynames`).
-
-- report_redacted:
-
-  If `TRUE`, prints which phrases were found and redacted.
-
-- name_token:
-
-  Replacement token for names.
-
-- school_token:
-
-  Replacement token for schools/other phrases.
+  Replacement token used for redactions (names and other phrases).
 
 - add_blank_line_between_turns:
 
   Logical; for DOCX/TXT outputs, insert a blank line between turns.
+
+- output_path:
+
+  Full path for the output file. If `NULL`, uses the folder of
+  `filepath` with the input base name plus `suffix` and an extension
+  based on `out_format`.
+
+- suffix:
+
+  Suffix to append to the base filename (default: `"_redacted"`).
+
+- out_format:
+
+  One of `"vtt"`, `"docx"`, or `"txt"` controlling the output file
+  extension.
+
+- report_redacted:
+
+  If `TRUE`, prints which phrases were found and redacted.
 
 ## Value
 

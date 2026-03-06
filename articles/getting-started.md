@@ -20,7 +20,7 @@ transcripts without forcing you to work with intermediate data.frames:
 Note: To ensure successful CRAN checks, examples avoid file I/O and
 instead use small in‑memory objects.
 
-## One‑file workflows (no data.frame needed)
+## One‑file workflows
 
 ``` r
 # VTT → DOCX

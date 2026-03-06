@@ -20,18 +20,16 @@ ghost_batch(
   input_dir,
   interviewers,
   interviewees = character(),
+  redact_other = character(),
+  redact_interviewer = FALSE,
+  include_common_names = FALSE,
+  redacted_token = "[REDACTED]",
+  add_blank_line_between_turns = TRUE,
   output_dir = NULL,
   recursive = FALSE,
   suffix = "_redacted",
   out_format = NULL,
-  redact_other = character(),
-  redact_interviewer = FALSE,
-  include_common_names = FALSE,
-  common_names_fun = NULL,
-  report_redacted = FALSE,
-  name_token = "[REDACTED]",
-  school_token = "[REDACTED]",
-  add_blank_line_between_turns = TRUE
+  report_redacted = FALSE
 )
 ```
 
@@ -48,6 +46,27 @@ ghost_batch(
 - interviewees:
 
   Character vector of interviewee/participant names.
+
+- redact_other:
+
+  Other words/phrases to redact.
+
+- redact_interviewer:
+
+  If `TRUE`, also redact interviewer names.
+
+- include_common_names:
+
+  If `TRUE`, also redact a default list of common names (e.g., top US
+  baby names, if available via `ghosted::common_names_default`).
+
+- redacted_token:
+
+  Replacement token used for redactions (names and other phrases).
+
+- add_blank_line_between_turns:
+
+  For VTT -\> DOCX/TXT outputs, insert a blank line between turns.
 
 - output_dir:
 
@@ -68,38 +87,9 @@ ghost_batch(
   `"vtt"` for `.docx`/`.txt` inputs, cues are written without
   timestamps.
 
-- redact_other:
-
-  Other words/phrases to redact.
-
-- redact_interviewer:
-
-  If `TRUE`, also redact interviewer names.
-
-- include_common_names:
-
-  If `TRUE`, also redact top US baby names (uses `common_names_fun`).
-
-- common_names_fun:
-
-  Function used when `include_common_names = TRUE` (default: top 1000 US
-  baby names from `babynames`).
-
 - report_redacted:
 
   If `TRUE`, print phrases found/redacted per file.
-
-- name_token:
-
-  Replacement token for names.
-
-- school_token:
-
-  Replacement token for schools/other phrases.
-
-- add_blank_line_between_turns:
-
-  For VTT -\> DOCX/TXT outputs, insert a blank line between turns.
 
 ## Value
 
