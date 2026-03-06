@@ -5,3 +5,12 @@
 .DS_Store
 .quarto
 pkgdown/
+inst/
+*.csv
+*.txt
+*.vtt
+*.xlsx
+*.docx
+*.Rproj
+README.html
+docs

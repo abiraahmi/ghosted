@@ -5,4 +5,6 @@
 ^docs$
 ^styles\.css$
 ^LICENSE\.md$
+^README\.html$
 ^\.github$
+^.*\.(csv|txt|vtt|xlsx|docx)$

@@ -9,7 +9,7 @@
 
 </div>
 
-De-identify transcripts without boilerplate. Four helpers:
+De-identify transcripts without boilerplate with helpers:
 
 - `ghost_vtt()` — redact a `.vtt` (Zoom/WebVTT) file and write
   `.vtt`/`.docx`/`.txt`.
