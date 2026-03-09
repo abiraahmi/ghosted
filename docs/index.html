@@ -18,30 +18,17 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Deidentify &amp; Batch Process Transcript Files">
 <meta name="description" content="Provides tools to parse, collapse, and deidentify WebVTT transcript files. The package supports batch processing of transcripts, speaker relabeling, name redaction, and export to formatted Word documents. Designed for use in research workflows that require structured and reproducible transcript deidentification.">
 <meta property="og:description" content="Provides tools to parse, collapse, and deidentify WebVTT transcript files. The package supports batch processing of transcripts, speaker relabeling, name redaction, and export to formatted Word documents. Designed for use in research workflows that require structured and reproducible transcript deidentification.">
-<meta property="og:image" content="https://abiraahmi.github.io/ghosted/reference/figures/sticker.png">
-<meta property="og:image:alt" content="ghosted package hex sticker">
-<link rel="icon" type="image/png" href="reference/figures/sticker.png">
-<style>
-  .navbar {
-    background-color: #330662 !important;
-  }
-  .navbar-dark .navbar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.85);
-  }
-  .navbar-dark .navbar-nav .nav-link:hover {
-    color: rgba(255, 255, 255, 1);
-  }
-</style>
+<meta property="og:image" content="https://abiraahmi.github.io/ghosted/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="index.html">ghosted</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,12 +41,15 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/getting-started.html">Getting Started</a></li>
+<li><a class="dropdown-item" href="articles/getting-started.html">De-identifying Transcripts with ghosted</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/abiraahmi/ghosted" aria-label="GitHub repository"><span class="fa fa-github fa-lg"></span></a></li>
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
+</form></li>
       </ul>
 </div>
 
@@ -75,16 +65,37 @@
 <!-- badges: start -->
 <!-- badges: end -->
 </div>
-<p>De-identify transcripts without boilerplate. Four helpers:</p>
+<p>De-identify transcripts with helpers:</p>
 <ul>
 <li>
-<code><a href="reference/ghost_vtt.html">ghost_vtt()</a></code> — redact a <code>.vtt</code> (Zoom/WebVTT) file and write <code>.vtt</code>/<code>.docx</code>/<code>.txt</code>.</li>
+<code><a href="reference/ghost_vtt.html">ghost_vtt()</a></code> — redact a <code>.vtt</code> (Zoom/WebVTT) file and write <code>.vtt</code>/<code>.docx</code>/<code>.txt</code>; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_path</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
 <li>
-<code><a href="reference/ghost_docx.html">ghost_docx()</a></code> — redact a <code>.docx</code> and write <code>.docx</code>.</li>
+<code><a href="reference/ghost_docx.html">ghost_docx()</a></code> — redact a <code>.docx</code> and write <code>.docx</code>/<code>.txt</code>/<code>.vtt</code>; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_path</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
 <li>
-<code><a href="reference/ghost_txt.html">ghost_txt()</a></code> — redact a <code>.txt</code> and write <code>.txt</code>.</li>
+<code><a href="reference/ghost_txt.html">ghost_txt()</a></code> — redact a <code>.txt</code> and write <code>.txt</code>/<code>.docx</code>/<code>.vtt</code>; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_path</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
 <li>
-<code><a href="reference/ghost_batch.html">ghost_batch()</a></code> — run the same logic across a folder of <code>.vtt</code>/<code>.docx</code>/<code>.txt</code> files.</li>
+<code><a href="reference/ghost_batch.html">ghost_batch()</a></code> — run the same logic across a folder of <code>.vtt</code>/<code>.docx</code>/<code>.txt</code> files; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_dir</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
+</ul>
+<p>Key options (common across functions):</p>
+<ul>
+<li>
+<code>redact_other</code>: extra phrases to redact (in addition to names).</li>
+<li>
+<code>redact_interviewer</code>: also redact interviewer names in text.</li>
+<li>
+<code>include_common_names</code>: add a default list of common names to redact.</li>
+<li>
+<code>redacted_token</code>: replacement token used for redactions (default <code>[REDACTED]</code>).</li>
+<li>
+<code>add_blank_line_between_turns</code>: for DOCX/TXT outputs, insert a blank line between turns.</li>
+<li>
+<code>output_path</code> (single-file functions) or <code>output_dir</code> (ghost_batch): where to write results.</li>
+<li>
+<code>suffix</code>: appended to output base name when <code>output_path</code>/<code>output_dir</code> is used (default <code>"_redacted"</code>).</li>
+<li>
+<code>out_format</code>: choose output type: <code>"vtt"</code>, <code>"docx"</code>, or <code>"txt"</code>.</li>
+<li>
+<code>report_redacted</code>: print which phrases were redacted to the console.</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -109,7 +120,7 @@
 <span>  interviewers <span class="op">=</span> <span class="st">"Sansa Stark"</span>,</span>
 <span>  interviewees <span class="op">=</span> <span class="st">"Arya Stark"</span>,</span>
 <span>  out_format   <span class="op">=</span> <span class="st">"docx"</span>,</span>
-<span>  output_dir   <span class="op">=</span> <span class="st">"output"</span>,</span>
+<span>  output_path  <span class="op">=</span> <span class="st">"output/sample_DEID.docx"</span>,</span>
 <span>  suffix       <span class="op">=</span> <span class="st">"_DEID"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -161,7 +172,7 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Abiraahmi Shankar <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0001-8354-5353" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
-<li>Catalina Canizares <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-6854-5205" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Catalina Canizares <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0000-0002-6854-5205" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>Francisco Cardozo <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0000-0002-1925-4954" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li><a href="authors.html">More about authors...</a></li>
 </ul>
@@ -178,7 +189,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

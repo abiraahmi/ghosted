@@ -5,25 +5,15 @@ boundary-aware matching, and writes the result as a WebVTT, Word, or plain
 text file."><meta property="og:description" content="Parses a Zoom/WebVTT transcript as raw cues (no data.frame), redacts
 interviewee names (and optionally interviewer names) plus other phrases using
 boundary-aware matching, and writes the result as a WebVTT, Word, or plain
-text file."><meta property="og:image" content="https://abiraahmi.github.io/ghosted/reference/figures/sticker.png"><meta property="og:image:alt" content="ghosted package hex sticker"><link rel="icon" type="image/png" href="reference/figures/sticker.png"><style>
-  .navbar {
-    background-color: #330662 !important;
-  }
-  .navbar-dark .navbar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.85);
-  }
-  .navbar-dark .navbar-nav .nav-link:hover {
-    color: rgba(255, 255, 255, 1);
-  }
-</style></head><body>
+text file."><meta property="og:image" content="https://abiraahmi.github.io/ghosted/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">ghosted</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,9 +24,11 @@ text file."><meta property="og:image" content="https://abiraahmi.github.io/ghost
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">De-identifying Transcripts with ghosted</a></li>
   </ul></li>
-      </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/abiraahmi/ghosted" aria-label="GitHub repository"><span class="fa fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+      </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
 
 
@@ -62,17 +54,15 @@ text file.</p>
 <span>  <span class="va">filepath</span>,</span>
 <span>  <span class="va">interviewers</span>,</span>
 <span>  interviewees <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  output_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  out_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vtt"</span>, <span class="st">"docx"</span>, <span class="st">"txt"</span><span class="op">)</span>,</span>
-<span>  suffix <span class="op">=</span> <span class="st">"_redacted"</span>,</span>
 <span>  redact_other <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  redact_interviewer <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_common_names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  common_names_fun <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  report_redacted <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  name_token <span class="op">=</span> <span class="st">"[REDACTED]"</span>,</span>
-<span>  school_token <span class="op">=</span> <span class="st">"[REDACTED]"</span>,</span>
-<span>  add_blank_line_between_turns <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  redacted_token <span class="op">=</span> <span class="st">"[REDACTED]"</span>,</span>
+<span>  add_blank_line_between_turns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  output_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  suffix <span class="op">=</span> <span class="st">"_redacted"</span>,</span>
+<span>  out_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vtt"</span>, <span class="st">"docx"</span>, <span class="st">"txt"</span><span class="op">)</span>,</span>
+<span>  report_redacted <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,21 +82,6 @@ text file.</p>
 <dd><p>Character vector of interviewee/participant names.</p></dd>
 
 
-<dt id="arg-output-dir">output_dir<a class="anchor" aria-label="anchor" href="#arg-output-dir"></a></dt>
-<dd><p>Output folder. If <code>NULL</code>, uses the folder of <code>filepath</code>.
-The output filename is derived from the input base name with <code>suffix</code>
-and an extension based on <code>out_format</code>.</p></dd>
-
-
-<dt id="arg-out-format">out_format<a class="anchor" aria-label="anchor" href="#arg-out-format"></a></dt>
-<dd><p>One of <code>"vtt"</code>, <code>"docx"</code>, or <code>"txt"</code> controlling the
-output file extension.</p></dd>
-
-
-<dt id="arg-suffix">suffix<a class="anchor" aria-label="anchor" href="#arg-suffix"></a></dt>
-<dd><p>Suffix to append to the base filename (default: <code>"_redacted"</code>).</p></dd>
-
-
 <dt id="arg-redact-other">redact_other<a class="anchor" aria-label="anchor" href="#arg-redact-other"></a></dt>
 <dd><p>Other words/phrases to redact.</p></dd>
 
@@ -117,30 +92,38 @@ transcript text. Interviewer names in the speaker field are always redacted.</p>
 
 
 <dt id="arg-include-common-names">include_common_names<a class="anchor" aria-label="anchor" href="#arg-include-common-names"></a></dt>
-<dd><p>If <code>TRUE</code>, also redact top US baby names (uses
-<code>common_names_fun</code>).</p></dd>
+<dd><p>If <code>TRUE</code>, also redact a default list of common
+names (e.g., top US baby names, if available via
+<code>ghosted::common_names_default</code>).</p></dd>
 
 
-<dt id="arg-common-names-fun">common_names_fun<a class="anchor" aria-label="anchor" href="#arg-common-names-fun"></a></dt>
-<dd><p>Function used when <code>include_common_names = TRUE</code>
-(default: top 1000 US baby names from <code>babynames</code>).</p></dd>
-
-
-<dt id="arg-report-redacted">report_redacted<a class="anchor" aria-label="anchor" href="#arg-report-redacted"></a></dt>
-<dd><p>If <code>TRUE</code>, prints which phrases were found and redacted.</p></dd>
-
-
-<dt id="arg-name-token">name_token<a class="anchor" aria-label="anchor" href="#arg-name-token"></a></dt>
-<dd><p>Replacement token for names.</p></dd>
-
-
-<dt id="arg-school-token">school_token<a class="anchor" aria-label="anchor" href="#arg-school-token"></a></dt>
-<dd><p>Replacement token for schools/other phrases.</p></dd>
+<dt id="arg-redacted-token">redacted_token<a class="anchor" aria-label="anchor" href="#arg-redacted-token"></a></dt>
+<dd><p>Replacement token used for redactions (names and other
+phrases).</p></dd>
 
 
 <dt id="arg-add-blank-line-between-turns">add_blank_line_between_turns<a class="anchor" aria-label="anchor" href="#arg-add-blank-line-between-turns"></a></dt>
 <dd><p>Logical; for DOCX/TXT outputs, insert a
 blank line between turns.</p></dd>
+
+
+<dt id="arg-output-path">output_path<a class="anchor" aria-label="anchor" href="#arg-output-path"></a></dt>
+<dd><p>Full path for the output file. If <code>NULL</code>, uses the folder
+of <code>filepath</code> with the input base name plus <code>suffix</code> and an extension based
+on <code>out_format</code>.</p></dd>
+
+
+<dt id="arg-suffix">suffix<a class="anchor" aria-label="anchor" href="#arg-suffix"></a></dt>
+<dd><p>Suffix to append to the base filename (default: <code>"_redacted"</code>).</p></dd>
+
+
+<dt id="arg-out-format">out_format<a class="anchor" aria-label="anchor" href="#arg-out-format"></a></dt>
+<dd><p>One of <code>"vtt"</code>, <code>"docx"</code>, or <code>"txt"</code> controlling the
+output file extension.</p></dd>
+
+
+<dt id="arg-report-redacted">report_redacted<a class="anchor" aria-label="anchor" href="#arg-report-redacted"></a></dt>
+<dd><p>If <code>TRUE</code>, prints which phrases were found and redacted.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -172,7 +155,7 @@ hyphenated pieces) and replaced longest-first with tokens.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
