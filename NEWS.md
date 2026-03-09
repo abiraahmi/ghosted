@@ -1,4 +1,4 @@
-# ghosted 0.0.1.8 (2026-03-04)
+# ghosted 0.0.2.0 (2026-03-04)
 
 - New functions to allow for different file types: `ghost_vtt()`, `ghost_docx()`, `ghost_txt()`, and `ghost_batch()`.
 - Leading speaker names at line start are normalized to `Interviewer`/`Participant`; names elsewhere are redacted.

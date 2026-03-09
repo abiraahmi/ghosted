@@ -13,33 +13,47 @@ De-identify transcripts with helpers:
 
 - `ghost_vtt()` — redact a `.vtt` (Zoom/WebVTT) file and write
   `.vtt`/`.docx`/`.txt`; supports `redact_other`, `redact_interviewer`,
-  `include_common_names`, `redacted_token`, `add_blank_line_between_turns`,
-  `output_path`, `suffix`, `out_format`, `report_redacted`.
+  `include_common_names`, `redacted_token`,
+  `add_blank_line_between_turns`, `output_path`, `suffix`, `out_format`,
+  `report_redacted`.
 - `ghost_docx()` — redact a `.docx` and write `.docx`/`.txt`/`.vtt`;
   supports `redact_other`, `redact_interviewer`, `include_common_names`,
-  `redacted_token`, `add_blank_line_between_turns`, `output_path`, `suffix`,
-  `out_format`, `report_redacted`.
+  `redacted_token`, `add_blank_line_between_turns`, `output_path`,
+  `suffix`, `out_format`, `report_redacted`.
 - `ghost_txt()` — redact a `.txt` and write `.txt`/`.docx`/`.vtt`;
   supports `redact_other`, `redact_interviewer`, `include_common_names`,
-  `redacted_token`, `add_blank_line_between_turns`, `output_path`, `suffix`,
-  `out_format`, `report_redacted`.
+  `redacted_token`, `add_blank_line_between_turns`, `output_path`,
+  `suffix`, `out_format`, `report_redacted`.
 - `ghost_batch()` — run the same logic across a folder of
-  `.vtt`/`.docx`/`.txt` files; supports `redact_other`, `redact_interviewer`,
-  `include_common_names`, `redacted_token`, `add_blank_line_between_turns`,
-  `output_dir`, `suffix`, `out_format`, `report_redacted`.
+  `.vtt`/`.docx`/`.txt` files; supports `redact_other`,
+  `redact_interviewer`, `include_common_names`, `redacted_token`,
+  `add_blank_line_between_turns`, `output_dir`, `suffix`, `out_format`,
+  `report_redacted`.
 
-Key options (common across functions):
+Common arguments (ghost_vtt/ghost_docx/ghost_txt):
 
-- `redact_other`: extra phrases to redact (in addition to names).
-- `redact_interviewer`: also redact interviewer names in text.
-- `include_common_names`: add a default list of common names to redact.
-- `redacted_token`: replacement token used for redactions (default `[REDACTED]`).
-- `add_blank_line_between_turns`: for DOCX/TXT outputs, insert a blank line between turns.
-- `output_path` (single-file functions) or `output_dir` (ghost_batch): where to write results.
-- `suffix`: appended to output base name when `output_path`/`output_dir` is used
-  (default `"_redacted"`).
-- `out_format`: choose output type: `"vtt"`, `"docx"`, or `"txt"`.
-- `report_redacted`: print which phrases were redacted to the console.
+- `filepath`: input file path (`.vtt`/`.docx`/`.txt` respectively).
+- `interviewers`: character vector of interviewer names (required).
+- `interviewees`: character vector of participant names (optional).
+- `redact_other`: additional words/phrases to redact.
+- `redact_interviewer`: if `TRUE`, also redact interviewer names in
+  text.
+- `include_common_names`: if `TRUE`, include
+  `ghosted::common_names_default()` if available.
+- `redacted_token`: replacement token for redactions (default
+  `[REDACTED]`).
+- `add_blank_line_between_turns`: for DOCX/TXT outputs, insert a blank
+  line between turns.
+- `output_path`: explicit output file path; if `NULL`, uses input dir
+  with `suffix`.
+- `suffix`: appended to base name when auto-generating outputs (default
+  `"_redacted"`).
+- `out_format`: output type. Allowed values per function:
+  - `ghost_vtt()`: `"vtt"` (default), `"docx"`, `"txt"`
+  - `ghost_docx()`: `"docx"` (default), `"txt"`, `"vtt"`
+  - `ghost_txt()`: `"txt"` (default), `"docx"`, `"vtt"`
+- `report_redacted`: if `TRUE`, prints which phrases were found and
+  redacted.
 
 ## Installation
 
