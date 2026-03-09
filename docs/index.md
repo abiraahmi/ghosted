@@ -1,0 +1,112 @@
+# ghosted
+
+De-identify transcripts with helpers:
+
+- [`ghost_vtt()`](https://abiraahmi.github.io/ghosted/reference/ghost_vtt.md)
+  — redact a `.vtt` (Zoom/WebVTT) file and write `.vtt`/`.docx`/`.txt`;
+  supports `redact_other`, `redact_interviewer`, `include_common_names`,
+  `redacted_token`, `add_blank_line_between_turns`, `output_path`,
+  `suffix`, `out_format`, `report_redacted`.
+- [`ghost_docx()`](https://abiraahmi.github.io/ghosted/reference/ghost_docx.md)
+  — redact a `.docx` and write `.docx`/`.txt`/`.vtt`; supports
+  `redact_other`, `redact_interviewer`, `include_common_names`,
+  `redacted_token`, `add_blank_line_between_turns`, `output_path`,
+  `suffix`, `out_format`, `report_redacted`.
+- [`ghost_txt()`](https://abiraahmi.github.io/ghosted/reference/ghost_txt.md)
+  — redact a `.txt` and write `.txt`/`.docx`/`.vtt`; supports
+  `redact_other`, `redact_interviewer`, `include_common_names`,
+  `redacted_token`, `add_blank_line_between_turns`, `output_path`,
+  `suffix`, `out_format`, `report_redacted`.
+- [`ghost_batch()`](https://abiraahmi.github.io/ghosted/reference/ghost_batch.md)
+  — run the same logic across a folder of `.vtt`/`.docx`/`.txt` files;
+  supports `redact_other`, `redact_interviewer`, `include_common_names`,
+  `redacted_token`, `add_blank_line_between_turns`, `output_dir`,
+  `suffix`, `out_format`, `report_redacted`.
+
+Common arguments (ghost_vtt/ghost_docx/ghost_txt):
+
+- `filepath`: input file path (`.vtt`/`.docx`/`.txt` respectively).
+- `interviewers`: character vector of interviewer names (required).
+- `interviewees`: character vector of participant names (optional).
+- `redact_other`: additional words/phrases to redact.
+- `redact_interviewer`: if `TRUE`, also redact interviewer names in
+  text.
+- `include_common_names`: if `TRUE`, include
+  `ghosted::common_names_default()` if available.
+- `redacted_token`: replacement token for redactions (default
+  `[REDACTED]`).
+- `add_blank_line_between_turns`: for DOCX/TXT outputs, insert a blank
+  line between turns.
+- `output_path`: explicit output file path; if `NULL`, uses input dir
+  with `suffix`.
+- `suffix`: appended to base name when auto-generating outputs (default
+  `"_redacted"`).
+- `out_format`: output type. Allowed values per function:
+  - [`ghost_vtt()`](https://abiraahmi.github.io/ghosted/reference/ghost_vtt.md):
+    `"vtt"` (default), `"docx"`, `"txt"`
+  - [`ghost_docx()`](https://abiraahmi.github.io/ghosted/reference/ghost_docx.md):
+    `"docx"` (default), `"txt"`, `"vtt"`
+  - [`ghost_txt()`](https://abiraahmi.github.io/ghosted/reference/ghost_txt.md):
+    `"txt"` (default), `"docx"`, `"vtt"`
+- `report_redacted`: if `TRUE`, prints which phrases were found and
+  redacted.
+
+## Installation
+
+You can install the development version of ghosted like so:
+
+``` r
+# via remotes
+remotes::install_github("abiraahmi/ghosted")
+
+# or with pak
+# pak::pak("abiraahmi/ghosted")
+```
+
+## Examples
+
+``` r
+library(ghosted)
+
+# VTT → DOCX (or "vtt"/"txt")
+ghost_vtt(
+  filepath     = "inst/data/sample.vtt",
+  interviewers = "Sansa Stark",
+  interviewees = "Arya Stark",
+  out_format   = "docx",
+  output_path  = "output/sample_DEID.docx",
+  suffix       = "_DEID"
+)
+
+# DOCX → DOCX
+ghost_docx(
+  filepath     = "inst/data/transcript.docx",
+  interviewers = "Sansa Stark",
+  interviewees = "Arya Stark",
+  output_path  = "output/transcript_DEID.docx"
+)
+
+# TXT → TXT
+ghost_txt(
+  filepath     = "inst/data/notes.txt",
+  interviewers = "Sansa Stark",
+  interviewees = "Arya Stark",
+  output_path  = "output/notes_DEID.txt"
+)
+
+# Batch a folder (keep file types)
+res <- ghost_batch(
+  input_dir    = "inst/data/transcripts",
+  interviewers = "Sansa Stark",
+  interviewees = "Arya Stark",
+  output_dir   = "output",
+  suffix       = "_DEID"
+)
+print(res)
+```
+
+Notes - Leading speaker tokens at line start (e.g., `Name:` or
+`<v Name>`) are normalized to `Interviewer`/`Participant` while names
+elsewhere are redacted. - For DOCX/TXT → VTT conversions in
+`ghost_batch(out_format = "vtt")`, cues are written without
+timestamps. - Ensure `officer` is installed for `.docx` reads/writes.
