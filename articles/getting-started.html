@@ -76,21 +76,91 @@ transcripts without forcing you to work with intermediate
 data.frames:</p>
 <ul>
 <li>
-<code><a href="../reference/ghost_vtt.html">ghost_vtt()</a></code>: redact a <code>.vtt</code> (Zoom/WebVTT)
-file and write
-<code>.vtt</code>/<code>.docx</code>/<code>.txt</code>.</li>
+<code><a href="../reference/ghost_vtt.html">ghost_vtt()</a></code> — redact a <code>.vtt</code> (Zoom/WebVTT)
+file and write <code>.vtt</code>/<code>.docx</code>/<code>.txt</code>;
+supports <code>redact_other</code>, <code>redact_interviewer</code>,
+<code>include_common_names</code>, <code>redacted_token</code>,
+<code>add_blank_line_between_turns</code>, <code>output_path</code>,
+<code>suffix</code>, <code>out_format</code>,
+<code>report_redacted</code>.</li>
 <li>
-<code><a href="../reference/ghost_docx.html">ghost_docx()</a></code>: redact a <code>.docx</code> file and
-write <code>.docx</code>.</li>
+<code><a href="../reference/ghost_docx.html">ghost_docx()</a></code> — redact a <code>.docx</code> and write
+<code>.docx</code>/<code>.txt</code>/<code>.vtt</code>; supports
+<code>redact_other</code>, <code>redact_interviewer</code>,
+<code>include_common_names</code>, <code>redacted_token</code>,
+<code>add_blank_line_between_turns</code>, <code>output_path</code>,
+<code>suffix</code>, <code>out_format</code>,
+<code>report_redacted</code>.</li>
 <li>
-<code><a href="../reference/ghost_txt.html">ghost_txt()</a></code>: redact a <code>.txt</code> file and write
-<code>.txt</code>.</li>
+<code><a href="../reference/ghost_txt.html">ghost_txt()</a></code> — redact a <code>.txt</code> and write
+<code>.txt</code>/<code>.docx</code>/<code>.vtt</code>; supports
+<code>redact_other</code>, <code>redact_interviewer</code>,
+<code>include_common_names</code>, <code>redacted_token</code>,
+<code>add_blank_line_between_turns</code>, <code>output_path</code>,
+<code>suffix</code>, <code>out_format</code>,
+<code>report_redacted</code>.</li>
 <li>
-<code><a href="../reference/ghost_batch.html">ghost_batch()</a></code>: run the same logic across a folder of
-<code>.vtt</code>/<code>.docx</code>/<code>.txt</code> files.</li>
+<code><a href="../reference/ghost_batch.html">ghost_batch()</a></code> — run the same logic across a folder of
+<code>.vtt</code>/<code>.docx</code>/<code>.txt</code> files; supports
+<code>redact_other</code>, <code>redact_interviewer</code>,
+<code>include_common_names</code>, <code>redacted_token</code>,
+<code>add_blank_line_between_turns</code>, <code>output_dir</code>,
+<code>suffix</code>, <code>out_format</code>,
+<code>report_redacted</code>.</li>
 </ul>
-<p>Note: To ensure successful CRAN checks, examples avoid file I/O and
-instead use small in‑memory objects.</p>
+<p>Common arguments (ghost_vtt/ghost_docx/ghost_txt):</p>
+<ul>
+<li>
+<code>filepath</code>: input file path
+(<code>.vtt</code>/<code>.docx</code>/<code>.txt</code>
+respectively).</li>
+<li>
+<code>interviewers</code>: character vector of interviewer names
+(required).</li>
+<li>
+<code>interviewees</code>: character vector of participant names
+(optional).</li>
+<li>
+<code>redact_other</code>: additional words/phrases to redact.</li>
+<li>
+<code>redact_interviewer</code>: if <code>TRUE</code>, also redact
+interviewer names in text.</li>
+<li>
+<code>include_common_names</code>: if <code>TRUE</code>, include
+<code>ghosted::common_names_default()</code> if available.</li>
+<li>
+<code>redacted_token</code>: replacement token for redactions
+(default <code>[REDACTED]</code>).</li>
+<li>
+<code>add_blank_line_between_turns</code>: for DOCX/TXT outputs,
+insert a blank line between turns.</li>
+<li>
+<code>output_path</code>: explicit output file path; if
+<code>NULL</code>, uses input dir with <code>suffix</code>.</li>
+<li>
+<code>suffix</code>: appended to base name when auto-generating
+outputs (default <code>"_redacted"</code>).</li>
+<li>
+<code>out_format</code>: output type. Allowed values per function:
+<ul>
+<li>
+<code><a href="../reference/ghost_vtt.html">ghost_vtt()</a></code>: <code>"vtt"</code> (default),
+<code>"docx"</code>, <code>"txt"</code>
+</li>
+<li>
+<code><a href="../reference/ghost_docx.html">ghost_docx()</a></code>: <code>"docx"</code> (default),
+<code>"txt"</code>, <code>"vtt"</code>
+</li>
+<li>
+<code><a href="../reference/ghost_txt.html">ghost_txt()</a></code>: <code>"txt"</code> (default),
+<code>"docx"</code>, <code>"vtt"</code>
+</li>
+</ul>
+</li>
+<li>
+<code>report_redacted</code>: if <code>TRUE</code>, prints which
+phrases were found and redacted.</li>
+</ul>
 <div class="section level2">
 <h2 id="onefile-workflows">One‑file workflows<a class="anchor" aria-label="anchor" href="#onefile-workflows"></a>
 </h2>
@@ -101,7 +171,7 @@ instead use small in‑memory objects.</p>
 <span>  interviewers <span class="op">=</span> <span class="st">"Sansa Stark"</span>,</span>
 <span>  interviewees <span class="op">=</span> <span class="st">"Arya Stark"</span>,</span>
 <span>  out_format   <span class="op">=</span> <span class="st">"docx"</span>,            <span class="co"># or "vtt" / "txt"</span></span>
-<span>  output_dir   <span class="op">=</span> <span class="st">"output/"</span>,</span>
+<span>  output_path  <span class="op">=</span> <span class="st">"output/"</span>,</span>
 <span>  suffix       <span class="op">=</span> <span class="st">"_DEID"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -141,10 +211,20 @@ instead use small in‑memory objects.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 <p>Notes</p>
 <ul>
-<li>Progress is shown with a console progress bar.</li>
+<li>
+<code><a href="../reference/ghost_batch.html">ghost_batch()</a></code>: Progress is shown with a console
+progress bar.</li>
 <li>For DOCX/TXT → VTT conversions (when
 <code>out_format = "vtt"</code>), cues are written without
 timestamps.</li>
+<li>Leading speaker tokens at line start (e.g., <code>Name:</code> or
+<code>&lt;v Name&gt;</code>) are normalized to
+<code>Interviewer</code>/<code>Participant</code> while names elsewhere
+are redacted.</li>
+<li>For DOCX/TXT → VTT conversions in
+<code>ghost_batch(out_format = "vtt")</code>, cues are written without
+timestamps. - Ensure <code>officer</code> is installed for
+<code>.docx</code> reads/writes.</li>
 <li>Install <code>officer</code> for DOCX reads/writes.</li>
 </ul>
 </div>

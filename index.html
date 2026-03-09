@@ -76,26 +76,44 @@
 <li>
 <code><a href="reference/ghost_batch.html">ghost_batch()</a></code> — run the same logic across a folder of <code>.vtt</code>/<code>.docx</code>/<code>.txt</code> files; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_dir</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
 </ul>
-<p>Key options (common across functions):</p>
+<p>Common arguments (ghost_vtt/ghost_docx/ghost_txt):</p>
 <ul>
 <li>
-<code>redact_other</code>: extra phrases to redact (in addition to names).</li>
+<code>filepath</code>: input file path (<code>.vtt</code>/<code>.docx</code>/<code>.txt</code> respectively).</li>
 <li>
-<code>redact_interviewer</code>: also redact interviewer names in text.</li>
+<code>interviewers</code>: character vector of interviewer names (required).</li>
 <li>
-<code>include_common_names</code>: add a default list of common names to redact.</li>
+<code>interviewees</code>: character vector of participant names (optional).</li>
 <li>
-<code>redacted_token</code>: replacement token used for redactions (default <code>[REDACTED]</code>).</li>
+<code>redact_other</code>: additional words/phrases to redact.</li>
+<li>
+<code>redact_interviewer</code>: if <code>TRUE</code>, also redact interviewer names in text.</li>
+<li>
+<code>include_common_names</code>: if <code>TRUE</code>, include <code>ghosted::common_names_default()</code> if available.</li>
+<li>
+<code>redacted_token</code>: replacement token for redactions (default <code>[REDACTED]</code>).</li>
 <li>
 <code>add_blank_line_between_turns</code>: for DOCX/TXT outputs, insert a blank line between turns.</li>
 <li>
-<code>output_path</code> (single-file functions) or <code>output_dir</code> (ghost_batch): where to write results.</li>
+<code>output_path</code>: explicit output file path; if <code>NULL</code>, uses input dir with <code>suffix</code>.</li>
 <li>
-<code>suffix</code>: appended to output base name when <code>output_path</code>/<code>output_dir</code> is used (default <code>"_redacted"</code>).</li>
+<code>suffix</code>: appended to base name when auto-generating outputs (default <code>"_redacted"</code>).</li>
 <li>
-<code>out_format</code>: choose output type: <code>"vtt"</code>, <code>"docx"</code>, or <code>"txt"</code>.</li>
+<code>out_format</code>: output type. Allowed values per function:
+<ul>
 <li>
-<code>report_redacted</code>: print which phrases were redacted to the console.</li>
+<code><a href="reference/ghost_vtt.html">ghost_vtt()</a></code>: <code>"vtt"</code> (default), <code>"docx"</code>, <code>"txt"</code>
+</li>
+<li>
+<code><a href="reference/ghost_docx.html">ghost_docx()</a></code>: <code>"docx"</code> (default), <code>"txt"</code>, <code>"vtt"</code>
+</li>
+<li>
+<code><a href="reference/ghost_txt.html">ghost_txt()</a></code>: <code>"txt"</code> (default), <code>"docx"</code>, <code>"vtt"</code>
+</li>
+</ul>
+</li>
+<li>
+<code>report_redacted</code>: if <code>TRUE</code>, prints which phrases were found and redacted.</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>

@@ -1,6 +1,6 @@
 # Changelog
 
-## ghosted 0.0.1.8 (2026-03-04)
+## ghosted 0.0.2.0 (2026-03-04)
 
 - New functions to allow for different file types:
   [`ghost_vtt()`](https://abiraahmi.github.io/ghosted/reference/ghost_vtt.md),
