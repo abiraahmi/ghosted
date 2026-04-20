@@ -3,13 +3,13 @@
 function per file type:
 .docx -&amp;gt; ghost_docx()
 .txt  -&amp;gt; ghost_txt()
-.vtt  -&amp;gt; ghost_vtt() (can output VTT/DOCX/TXT)
+.vtt  -&amp;gt; ghost_vtt()
 
 "><meta property="og:description" content="Scans a folder for transcript files and runs the appropriate redaction
 function per file type:
 .docx -&amp;gt; ghost_docx()
 .txt  -&amp;gt; ghost_txt()
-.vtt  -&amp;gt; ghost_vtt() (can output VTT/DOCX/TXT)
+.vtt  -&amp;gt; ghost_vtt()
 
 "><meta property="og:image" content="https://abiraahmi.github.io/ghosted/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -51,7 +51,7 @@ function per file type:
     <p>Scans a folder for transcript files and runs the appropriate redaction
 function per file type:</p><ul><li><p><code>.docx</code> -&gt; <code><a href="ghost_docx.html">ghost_docx()</a></code></p></li>
 <li><p><code>.txt</code>  -&gt; <code><a href="ghost_txt.html">ghost_txt()</a></code></p></li>
-<li><p><code>.vtt</code>  -&gt; <code><a href="ghost_vtt.html">ghost_vtt()</a></code> (can output VTT/DOCX/TXT)</p></li>
+<li><p><code>.vtt</code>  -&gt; <code><a href="ghost_vtt.html">ghost_vtt()</a></code></p></li>
 </ul></div>
 
     <div class="section level2">
@@ -61,7 +61,7 @@ function per file type:</p><ul><li><p><code>.docx</code> -&gt; <code><a href="gh
 <span>  <span class="va">interviewers</span>,</span>
 <span>  interviewees <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  redact_other <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  redact_interviewer <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  redact_interviewer <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_common_names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  redacted_token <span class="op">=</span> <span class="st">"[REDACTED]"</span>,</span>
 <span>  add_blank_line_between_turns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -94,7 +94,8 @@ function per file type:</p><ul><li><p><code>.docx</code> -&gt; <code><a href="gh
 
 
 <dt id="arg-redact-interviewer">redact_interviewer<a class="anchor" aria-label="anchor" href="#arg-redact-interviewer"></a></dt>
-<dd><p>If <code>TRUE</code>, also redact interviewer names.</p></dd>
+<dd><p>If <code>TRUE</code> (default), redact interviewer names in
+body text. Passed through to the per-format functions.</p></dd>
 
 
 <dt id="arg-include-common-names">include_common_names<a class="anchor" aria-label="anchor" href="#arg-include-common-names"></a></dt>
@@ -109,8 +110,8 @@ phrases).</p></dd>
 
 
 <dt id="arg-add-blank-line-between-turns">add_blank_line_between_turns<a class="anchor" aria-label="anchor" href="#arg-add-blank-line-between-turns"></a></dt>
-<dd><p>For VTT -&gt; DOCX/TXT outputs, insert a
-blank line between turns.</p></dd>
+<dd><p>For DOCX/TXT outputs, insert a blank
+line between turns.</p></dd>
 
 
 <dt id="arg-output-dir">output_dir<a class="anchor" aria-label="anchor" href="#arg-output-dir"></a></dt>
@@ -127,9 +128,9 @@ blank line between turns.</p></dd>
 
 <dt id="arg-out-format">out_format<a class="anchor" aria-label="anchor" href="#arg-out-format"></a></dt>
 <dd><p>Output format for all inputs; one of <code>"vtt"</code>, <code>"docx"</code>, or
-<code>"txt"</code>. If <code>NULL</code> (default), each file keeps its original format. If you
-request <code>"vtt"</code> for <code>.docx</code>/<code>.txt</code> inputs, cues are written without
-timestamps.</p></dd>
+<code>"txt"</code>. If <code>NULL</code> (default), each file keeps its original format. When a
+<code>.docx</code>/<code>.txt</code> input is asked for <code>"vtt"</code>, cues are written without
+timestamps (handled by <code><a href="ghost_docx.html">ghost_docx()</a></code>/<code><a href="ghost_txt.html">ghost_txt()</a></code>).</p></dd>
 
 
 <dt id="arg-report-redacted">report_redacted<a class="anchor" aria-label="anchor" href="#arg-report-redacted"></a></dt>
@@ -143,7 +144,9 @@ Invisibly returned.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Outputs are written to <code>output_dir</code> (defaults to <code>input_dir</code>) using the input
+    <p>Each file is dispatched to its single-file handler with <code>out_format</code>, so any
+format-conversion logic lives in one place (the per-format function).
+Outputs are written to <code>output_dir</code> (defaults to <code>input_dir</code>) using the input
 base filename with <code>suffix</code> appended before the extension. Shows a console
 progress bar while processing.</p>
     </div>

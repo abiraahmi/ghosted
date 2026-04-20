@@ -11,7 +11,6 @@ function per file type:
 
 - `.vtt` -\>
   [`ghost_vtt()`](https://abiraahmi.github.io/ghosted/reference/ghost_vtt.md)
-  (can output VTT/DOCX/TXT)
 
 ## Usage
 
@@ -21,7 +20,7 @@ ghost_batch(
   interviewers,
   interviewees = character(),
   redact_other = character(),
-  redact_interviewer = FALSE,
+  redact_interviewer = TRUE,
   include_common_names = FALSE,
   redacted_token = "[REDACTED]",
   add_blank_line_between_turns = TRUE,
@@ -53,7 +52,8 @@ ghost_batch(
 
 - redact_interviewer:
 
-  If `TRUE`, also redact interviewer names.
+  If `TRUE` (default), redact interviewer names in body text. Passed
+  through to the per-format functions.
 
 - include_common_names:
 
@@ -66,7 +66,7 @@ ghost_batch(
 
 - add_blank_line_between_turns:
 
-  For VTT -\> DOCX/TXT outputs, insert a blank line between turns.
+  For DOCX/TXT outputs, insert a blank line between turns.
 
 - output_dir:
 
@@ -83,9 +83,10 @@ ghost_batch(
 - out_format:
 
   Output format for all inputs; one of `"vtt"`, `"docx"`, or `"txt"`. If
-  `NULL` (default), each file keeps its original format. If you request
-  `"vtt"` for `.docx`/`.txt` inputs, cues are written without
-  timestamps.
+  `NULL` (default), each file keeps its original format. When a
+  `.docx`/`.txt` input is asked for `"vtt"`, cues are written without
+  timestamps (handled by
+  [`ghost_docx()`](https://abiraahmi.github.io/ghosted/reference/ghost_docx.md)/[`ghost_txt()`](https://abiraahmi.github.io/ghosted/reference/ghost_txt.md)).
 
 - report_redacted:
 
@@ -98,9 +99,11 @@ Invisibly returned.
 
 ## Details
 
-Outputs are written to `output_dir` (defaults to `input_dir`) using the
-input base filename with `suffix` appended before the extension. Shows a
-console progress bar while processing.
+Each file is dispatched to its single-file handler with `out_format`, so
+any format-conversion logic lives in one place (the per-format
+function). Outputs are written to `output_dir` (defaults to `input_dir`)
+using the input base filename with `suffix` appended before the
+extension. Shows a console progress bar while processing.
 
 ## Examples
 

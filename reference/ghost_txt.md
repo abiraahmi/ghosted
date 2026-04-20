@@ -16,7 +16,7 @@ ghost_txt(
   interviewers,
   interviewees = character(),
   redact_other = character(),
-  redact_interviewer = FALSE,
+  redact_interviewer = TRUE,
   include_common_names = FALSE,
   redacted_token = "[REDACTED]",
   add_blank_line_between_turns = TRUE,
@@ -47,12 +47,15 @@ ghost_txt(
 
 - redact_interviewer:
 
-  If `TRUE`, also redact interviewer names.
+  If `TRUE` (default), redact interviewer names in body text. If
+  `FALSE`, interviewer names are preserved in body text; leading speaker
+  labels are still normalized to `Interviewer` regardless.
 
 - include_common_names:
 
   If `TRUE`, also redact a default list of common names (e.g., top US
-  baby names, if available via `ghosted::common_names_default`).
+  baby names, if available via `ghosted::common_names_default`). Emits a
+  warning when the dataset is not bundled in the installed version.
 
 - redacted_token:
 
