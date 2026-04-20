@@ -9,7 +9,7 @@ ghost_batch(
   interviewers,
   interviewees = character(),
   redact_other = character(),
-  redact_interviewer = FALSE,
+  redact_interviewer = TRUE,
   include_common_names = FALSE,
   redacted_token = "[REDACTED]",
   add_blank_line_between_turns = TRUE,
@@ -29,7 +29,8 @@ ghost_batch(
 
 \item{redact_other}{Other words/phrases to redact.}
 
-\item{redact_interviewer}{If \code{TRUE}, also redact interviewer names.}
+\item{redact_interviewer}{If \code{TRUE} (default), redact interviewer names in
+body text. Passed through to the per-format functions.}
 
 \item{include_common_names}{If \code{TRUE}, also redact a default list of common
 names (e.g., top US baby names, if available via
@@ -38,8 +39,8 @@ names (e.g., top US baby names, if available via
 \item{redacted_token}{Replacement token used for redactions (names and other
 phrases).}
 
-\item{add_blank_line_between_turns}{For VTT -> DOCX/TXT outputs, insert a
-blank line between turns.}
+\item{add_blank_line_between_turns}{For DOCX/TXT outputs, insert a blank
+line between turns.}
 
 \item{output_dir}{Folder to write outputs (default: \code{input_dir}).}
 
@@ -48,9 +49,9 @@ blank line between turns.}
 \item{suffix}{Suffix to append to each output filename (default: \verb{_redacted}).}
 
 \item{out_format}{Output format for all inputs; one of \code{"vtt"}, \code{"docx"}, or
-\code{"txt"}. If \code{NULL} (default), each file keeps its original format. If you
-request \code{"vtt"} for \code{.docx}/\code{.txt} inputs, cues are written without
-timestamps.}
+\code{"txt"}. If \code{NULL} (default), each file keeps its original format. When a
+\code{.docx}/\code{.txt} input is asked for \code{"vtt"}, cues are written without
+timestamps (handled by \code{\link[=ghost_docx]{ghost_docx()}}/\code{\link[=ghost_txt]{ghost_txt()}}).}
 
 \item{report_redacted}{If \code{TRUE}, print phrases found/redacted per file.}
 }
@@ -64,10 +65,12 @@ function per file type:
 \itemize{
 \item \code{.docx} -> \code{\link[=ghost_docx]{ghost_docx()}}
 \item \code{.txt}  -> \code{\link[=ghost_txt]{ghost_txt()}}
-\item \code{.vtt}  -> \code{\link[=ghost_vtt]{ghost_vtt()}} (can output VTT/DOCX/TXT)
+\item \code{.vtt}  -> \code{\link[=ghost_vtt]{ghost_vtt()}}
 }
 }
 \details{
+Each file is dispatched to its single-file handler with \code{out_format}, so any
+format-conversion logic lives in one place (the per-format function).
 Outputs are written to \code{output_dir} (defaults to \code{input_dir}) using the input
 base filename with \code{suffix} appended before the extension. Shows a console
 progress bar while processing.
