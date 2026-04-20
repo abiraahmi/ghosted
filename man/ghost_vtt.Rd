@@ -9,7 +9,7 @@ ghost_vtt(
   interviewers,
   interviewees = character(),
   redact_other = character(),
-  redact_interviewer = FALSE,
+  redact_interviewer = TRUE,
   include_common_names = FALSE,
   redacted_token = "[REDACTED]",
   add_blank_line_between_turns = TRUE,
@@ -28,12 +28,14 @@ ghost_vtt(
 
 \item{redact_other}{Other words/phrases to redact.}
 
-\item{redact_interviewer}{If \code{TRUE}, also redact interviewer names in the
-transcript text. Interviewer names in the speaker field are always redacted.}
+\item{redact_interviewer}{If \code{TRUE} (default), redact interviewer names in
+body text. If \code{FALSE}, interviewer names are preserved in body text;
+leading speaker labels are still normalized to \code{Interviewer} regardless.}
 
 \item{include_common_names}{If \code{TRUE}, also redact a default list of common
 names (e.g., top US baby names, if available via
-\code{ghosted::common_names_default}).}
+\code{ghosted::common_names_default}). Emits a warning when the dataset is not
+bundled in the installed version.}
 
 \item{redacted_token}{Replacement token used for redactions (names and other
 phrases).}
