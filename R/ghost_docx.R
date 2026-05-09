@@ -18,9 +18,8 @@
 #'   bundled in the installed version.
 #' @param redacted_token Replacement token used for redactions (names and other
 #'   phrases).
-#' @param add_blank_line_between_turns Logical; for TXT/DOCX outputs when
-#'   converting formats, insert a blank line between turns. This does not affect
-#'   DOCX→DOCX.
+#' @param add_blank_line_between_turns Logical; for TXT/DOCX outputs, insert a
+#'   blank line between turns.
 #' @param output_path Path for the redacted file. If `NULL` (default), set to the
 #'   same directory and base name as `filepath` with `_redacted` before the
 #'   extension. The extension is chosen based on `out_format` (e.g.
@@ -151,6 +150,9 @@ write_redacted_paragraphs <- function(redacted, output_path, fmt,
         out_doc <- officer::body_add_par(out_doc,
                                          ifelse(is.na(p), "", p),
                                          style = "Normal")
+        if (isTRUE(add_blank_line_between_turns)) {
+          out_doc <- officer::body_add_par(out_doc, "", style = "Normal")
+        }
       }
     } else {
       out_doc <- officer::body_add_par(out_doc, "", style = "Normal")

@@ -185,9 +185,7 @@ build_phrase_sets <- function(interviewers,
   parts_text <- expand_name_parts(body_names, min_chars = 3)
   names_text <- unique(c(body_names, parts_text))
 
-  other_parts <- expand_name_parts(redact_other, min_chars = 3,
-                                   drop_tokens = character())
-  other_all <- unique(c(redact_other, other_parts))
+  other_all <- unique(redact_other)
 
   int_set <- unique(c(interviewers,
                       expand_name_parts(interviewers, min_chars = 3)))

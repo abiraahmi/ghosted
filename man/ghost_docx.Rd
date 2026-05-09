@@ -40,9 +40,8 @@ bundled in the installed version.}
 \item{redacted_token}{Replacement token used for redactions (names and other
 phrases).}
 
-\item{add_blank_line_between_turns}{Logical; for TXT/DOCX outputs when
-converting formats, insert a blank line between turns. This does not affect
-DOCX→DOCX.}
+\item{add_blank_line_between_turns}{Logical; for TXT/DOCX outputs, insert a
+blank line between turns.}
 
 \item{output_path}{Path for the redacted file. If \code{NULL} (default), set to the
 same directory and base name as \code{filepath} with \verb{_redacted} before the

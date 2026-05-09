@@ -69,6 +69,34 @@ test_that("ghost_vtt writes txt and relabels multiple patterns", {
   expect_true(any(grepl("Participant|Interviewer", out)))
 })
 
+test_that("ghost_vtt redact_other only redacts listed phrase", {
+  td <- tempfile("gvtt_strict_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "sample.vtt")
+  outfile <- file.path(td, "sample_out.txt")
+  writeLines(c(
+    "WEBVTT", "",
+    "1", "00:00:00.000 --> 00:00:01.000", "Alex Baloney: Visit Dragon Fruit today", "",
+    "2", "00:00:01.000 --> 00:00:02.000", "Dragon should remain for context", "",
+    "3", "00:00:02.000 --> 00:00:03.000", "Fruit should remain for context", ""
+  ), infile, useBytes = TRUE)
+
+  ghost_vtt(
+    filepath = infile,
+    interviewers = character(),
+    interviewees = "Alex Baloney",
+    redact_interviewer = FALSE,
+    redact_other = "Dragon Fruit",
+    out_format = "txt",
+    output_path = outfile
+  )
+
+  got <- readLines(outfile, warn = FALSE)
+  expect_true(any(grepl("\\[REDACTED\\]", got)))
+  expect_true(any(grepl("\\bDragon\\b", got)))
+  expect_true(any(grepl("\\bFruit\\b", got)))
+  expect_false(any(grepl("Dragon Fruit", got, ignore.case = TRUE)))
+})
+
 test_that("ghost_vtt can write docx when officer available", {
   if (!requireNamespace("officer", quietly = TRUE)) skip("officer not installed")
   td <- tempfile("gvtt2_", fileext = ""); dir.create(td)

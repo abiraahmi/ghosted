@@ -53,6 +53,32 @@ test_that("ghost_txt default path and common names redaction", {
   expect_true(grepl("\\[REDACTED\\]", paste(out, collapse = "\n")))
 })
 
+test_that("ghost_txt redact_other only redacts listed phrase", {
+  td <- tempfile("gtxt_strict_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "sample.txt")
+  outfile <- file.path(td, "sample_out.txt")
+  writeLines(c(
+    "Alex Baloney: Visit Dragon Fruit today",
+    "Dragon should remain for context",
+    "Fruit should remain for context"
+  ), infile, useBytes = TRUE)
+
+  ghost_txt(
+    filepath = infile,
+    interviewers = character(),
+    interviewees = "Alex Baloney",
+    redact_interviewer = FALSE,
+    redact_other = "Dragon Fruit",
+    output_path = outfile
+  )
+
+  got <- readLines(outfile, warn = FALSE)
+  expect_true(any(grepl("\\[REDACTED\\]", got)))
+  expect_true(any(grepl("\\bDragon\\b", got)))
+  expect_true(any(grepl("\\bFruit\\b", got)))
+  expect_false(any(grepl("Dragon Fruit", got, ignore.case = TRUE)))
+})
+
 test_that("ghost_txt can write VTT with header and tokens", {
   td <- tempfile("gtxt_vtt_", fileext = ""); dir.create(td)
   infile <- file.path(td, "s.txt")

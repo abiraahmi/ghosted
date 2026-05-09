@@ -94,3 +94,61 @@ test_that("ghost_batch covers conversions and common names", {
   )
   expect_true(all(grepl("_C\\.txt$", na.omit(res_txt$output_file))))
 })
+
+test_that("ghost_batch adds blank Word paragraphs for docx inputs", {
+  if (!requireNamespace("officer", quietly = TRUE)) skip("officer not installed")
+  td <- tempfile("gb_docx_blanks_", fileext = ""); dir.create(td)
+  outd <- file.path(td, "out"); dir.create(outd)
+
+  infile <- file.path(td, "sample.docx")
+  d <- officer::read_docx()
+  d <- officer::body_add_par(d, "Kailey Rivera: Hello", style = "Normal")
+  d <- officer::body_add_par(d, "Alex Baloney: Hi", style = "Normal")
+  print(d, target = infile)
+
+  res <- ghost_batch(
+    input_dir = td,
+    interviewers = "Kailey Rivera",
+    interviewees = "Alex Baloney",
+    output_dir = outd,
+    out_format = NULL,
+    add_blank_line_between_turns = TRUE
+  )
+
+  expect_identical(res$status, "ok")
+  ds <- officer::docx_summary(officer::read_docx(res$output_file))
+  if ("content_type" %in% names(ds)) {
+    ds <- ds[ds$content_type == "paragraph", , drop = FALSE]
+  }
+  expect_true(any(ds$text == "", na.rm = TRUE))
+})
+
+test_that("ghost_batch passes strict redact_other behavior through handlers", {
+  td <- tempfile("gb_strict_", fileext = ""); dir.create(td)
+  outd <- file.path(td, "out"); dir.create(outd)
+
+  txt <- file.path(td, "t.txt")
+  writeLines(c(
+    "Alex Baloney: Visit Dragon Fruit today",
+    "Dragon should remain for context",
+    "Fruit should remain for context"
+  ), txt, useBytes = TRUE)
+
+  res <- ghost_batch(
+    input_dir = td,
+    interviewers = character(),
+    interviewees = "Alex Baloney",
+    redact_interviewer = FALSE,
+    redact_other = "Dragon Fruit",
+    output_dir = outd,
+    out_format = "txt",
+    suffix = "_strict"
+  )
+
+  expect_identical(res$status, "ok")
+  got <- readLines(res$output_file, warn = FALSE)
+  expect_true(any(grepl("\\[REDACTED\\]", got)))
+  expect_true(any(grepl("\\bDragon\\b", got)))
+  expect_true(any(grepl("\\bFruit\\b", got)))
+  expect_false(any(grepl("Dragon Fruit", got, ignore.case = TRUE)))
+})

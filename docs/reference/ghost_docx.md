@@ -60,8 +60,7 @@ ghost_docx(
 
 - add_blank_line_between_turns:
 
-  Logical; for TXT/DOCX outputs when converting formats, insert a blank
-  line between turns. This does not affect DOCX→DOCX.
+  Logical; for TXT/DOCX outputs, insert a blank line between turns.
 
 - output_path:
 
