@@ -35,6 +35,19 @@ test_that("ghost_batch processes a mix of files and writes outputs", {
   expect_s3_class(res, "data.frame")
   # Expect at least two results (vtt + txt), three if officer available
   expect_true(nrow(res) >= 2)
+  expect_true(all(c("pre_int_name",
+                    "post_int_name",
+                    "post_int_optimization",
+                    "post_int_name_other",
+                    "pre_part_name",
+                    "post_part_name",
+                    "post_part_optimization",
+                    "post_part_name_other",
+                    "other_redactions") %in% names(res)))
+  definitions <- attr(res, "redaction_report_definitions", exact = TRUE)
+  expect_s3_class(definitions, "data.frame")
+  expect_true(all(c("term", "definition") %in% names(definitions)))
+  expect_false("label" %in% names(definitions))
   # All reported output paths exist
   existing <- res$output_file[!is.na(res$output_file)]
   expect_true(all(file.exists(existing)))

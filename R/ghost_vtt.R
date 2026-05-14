@@ -88,10 +88,10 @@ ghost_vtt <- function(filepath,
   all_text <- unlist(lapply(cues, `[[`, "text"), use.names = FALSE)
   found_names <- character()
   found_other <- character()
-  if (isTRUE(report_redacted) && length(all_text)) {
-    found_names <- phrases_found(all_text, sets$names_text)
-    found_other <- phrases_found(all_text, sets$other_all)
-  }
+  post_interviewer_optimizations <- 0L
+  post_participant_optimizations <- 0L
+  original_interviewer_names <- count_phrase_occurrences(all_text, interviewers)
+  original_participant_names <- count_phrase_occurrences(all_text, interviewees)
 
   if (length(cues)) {
     for (k in seq_along(cues)) {
@@ -100,24 +100,65 @@ ghost_vtt <- function(filepath,
                                     vtt_voice_tag = TRUE)
       tvec <- leading_speaker_label(tvec, sets$ive_set, "Participant",
                                     vtt_voice_tag = TRUE)
-      tvec <- redact_phrases(tvec, sets$names_text, redacted_token)
-      tvec <- redact_phrases(tvec, sets$other_all, redacted_token)
       cues[[k]]$text <- tvec
     }
+    cues <- collapse_consecutive_speaker_cues(cues)
+    post_interviewer_optimizations <- attr(cues,
+                                           "interviewer_optimizations",
+                                           exact = TRUE)
+    if (is.null(post_interviewer_optimizations)) {
+      post_interviewer_optimizations <- 0L
+    }
+    post_participant_optimizations <- attr(cues,
+                                           "participant_optimizations",
+                                           exact = TRUE)
+    if (is.null(post_participant_optimizations)) {
+      post_participant_optimizations <- 0L
+    }
   }
+  formatted_text <- unlist(lapply(cues, `[[`, "text"), use.names = FALSE)
+  post_interviewer_index <- count_speaker_index_labels(formatted_text,
+                                                       "Interviewer")
+  post_participant_index <- count_speaker_index_labels(formatted_text,
+                                                       "Participant")
+  if (isTRUE(report_redacted) && length(formatted_text)) {
+    found_names <- phrases_found(formatted_text, sets$names_text)
+    found_other <- phrases_found(formatted_text, sets$other_all)
+  }
+  phrase_groups <- build_redaction_phrase_groups(interviewers,
+                                                 interviewees,
+                                                 redact_interviewer,
+                                                 sets$other_all)
+  redaction_counts <- stats::setNames(integer(length(phrase_groups)),
+                                      names(phrase_groups))
+  if (length(cues)) {
+    for (k in seq_along(cues)) {
+      redacted_result <- redact_phrase_groups(cues[[k]]$text,
+                                              phrase_groups,
+                                              redacted_token)
+      cues[[k]]$text <- redacted_result$text
+      redaction_counts <- redaction_counts + redacted_result$counts
+    }
+  }
+  redaction_report <- build_redaction_report(
+    redaction_counts,
+    original_interviewer_names,
+    original_participant_names,
+    post_interviewer_index,
+    post_participant_index,
+    post_interviewer_optimizations,
+    post_participant_optimizations
+  )
 
   if (isTRUE(report_redacted)) {
-    if (length(found_names)) {
-      message("Names redacted: ", paste(found_names, collapse = ", "))
-    }
-    if (length(found_other)) {
-      message("Other phrases redacted: ", paste(found_other, collapse = ", "))
-    }
+    report_redaction_summary(found_names, found_other)
+    print_redaction_report(redaction_report)
   }
 
   output_path <- resolve_output_path(filepath, output_path, suffix, fmt)
   write_redacted_cues(cues, output_path, fmt, add_blank_line_between_turns)
 
+  attr(output_path, "redaction_report") <- redaction_report
   invisible(output_path)
 }
 
@@ -186,14 +227,16 @@ write_redacted_cues <- function(cues, output_path, fmt,
   } else if (identical(fmt, "docx")) {
     doc <- officer::read_docx()
     if (length(cues)) {
-      for (idx in seq_along(cues)) {
-        para <- if (length(cues[[idx]]$text)) {
-          paste(cues[[idx]]$text, collapse = " ")
+      out_lines <- vapply(cues, function(cue) {
+        if (length(cue$text)) {
+          paste(cue$text, collapse = " ")
         } else ""
+      }, character(1))
+      if (isTRUE(add_blank_line_between_turns)) {
+        out_lines <- add_blanks_between_speaker_changes(out_lines)
+      }
+      for (para in out_lines) {
         doc <- officer::body_add_par(doc, para, style = "Normal")
-        if (add_blank_line_between_turns) {
-          doc <- officer::body_add_par(doc, "", style = "Normal")
-        }
       }
     }
     print(doc, target = output_path)
@@ -205,8 +248,10 @@ write_redacted_cues <- function(cues, output_path, fmt,
           paste(cues[[idx]]$text, collapse = " ")
         } else ""
         out_lines <- c(out_lines, para)
-        if (add_blank_line_between_turns) out_lines <- c(out_lines, "")
       }
+    }
+    if (isTRUE(add_blank_line_between_turns) && length(out_lines)) {
+      out_lines <- add_blanks_between_speaker_changes(out_lines)
     }
     con <- file(output_path, open = "w", encoding = "UTF-8")
     on.exit(close(con), add = TRUE)

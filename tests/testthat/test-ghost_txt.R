@@ -79,6 +79,46 @@ test_that("ghost_txt redact_other only redacts listed phrase", {
   expect_false(any(grepl("Dragon Fruit", got, ignore.case = TRUE)))
 })
 
+test_that("ghost_txt collapses same-speaker turns and reports count", {
+  td <- tempfile("gtxt_opt_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "sample.txt")
+  outfile <- file.path(td, "sample_out.txt")
+  writeLines(c(
+    "Kailey Rivera: Hello",
+    "Kailey Rivera: Follow-up",
+    "Alex Baloney: Hi"
+  ), infile, useBytes = TRUE)
+
+  expect_output(
+    res <- ghost_txt(
+      filepath = infile,
+      interviewers = "Kailey Rivera",
+      interviewees = "Alex Baloney",
+      report_redacted = TRUE,
+      output_path = outfile
+    ),
+    regexp = "term\\s+definition\\s+count"
+  )
+
+  got <- readLines(outfile, warn = FALSE)
+  expect_identical(got, c("Interviewer: Hello Follow-up",
+                          "Participant: Hi"))
+  report <- attr(res, "redaction_report", exact = TRUE)
+  expect_s3_class(report, "data.frame")
+  expect_equal(report$pre_int_name, 2)
+  expect_equal(report$post_int_name, 1)
+  expect_equal(report$post_int_optimization, 1)
+  expect_equal(report$post_int_name_other, 0)
+  expect_equal(report$pre_part_name, 1)
+  expect_equal(report$post_part_name, 1)
+  expect_equal(report$post_part_optimization, 0)
+  expect_equal(report$post_part_name_other, 0)
+  definitions <- attr(report, "definitions", exact = TRUE)
+  expect_s3_class(definitions, "data.frame")
+  expect_true(all(names(report) %in% definitions$term))
+  expect_false("label" %in% names(definitions))
+})
+
 test_that("ghost_txt can write VTT with header and tokens", {
   td <- tempfile("gtxt_vtt_", fileext = ""); dir.create(td)
   infile <- file.path(td, "s.txt")

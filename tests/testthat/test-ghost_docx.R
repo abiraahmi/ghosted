@@ -56,6 +56,7 @@ test_that("ghost_docx adds blank Word paragraphs between turns when requested", 
 
   d <- officer::read_docx()
   d <- officer::body_add_par(d, "Kailey Rivera: Hello", style = "Normal")
+  d <- officer::body_add_par(d, "Kailey Rivera: Follow-up", style = "Normal")
   d <- officer::body_add_par(d, "Alex Baloney: Hi", style = "Normal")
   print(d, target = infile)
 
@@ -84,6 +85,7 @@ test_that("ghost_docx adds blank Word paragraphs between turns when requested", 
   }
 
   expect_true(any(with_blanks$text == "", na.rm = TRUE))
+  expect_equal(sum(with_blanks$text == "", na.rm = TRUE), 1)
   expect_false(any(without_blanks$text == "", na.rm = TRUE))
 })
 

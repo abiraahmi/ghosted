@@ -80,29 +80,60 @@ ghost_txt <- function(filepath,
 
   found_names <- character()
   found_other <- character()
+  post_interviewer_optimizations <- 0L
+  post_participant_optimizations <- 0L
+  original_interviewer_names <- count_phrase_occurrences(lines, interviewers)
+  original_participant_names <- count_phrase_occurrences(lines, interviewees)
+
+  lines <- leading_speaker_label(lines, sets$int_set, "Interviewer")
+  lines <- leading_speaker_label(lines, sets$ive_set, "Participant")
+  lines <- collapse_consecutive_speaker_lines(lines)
+  post_interviewer_optimizations <- attr(lines, "interviewer_optimizations",
+                                         exact = TRUE)
+  if (is.null(post_interviewer_optimizations)) {
+    post_interviewer_optimizations <- 0L
+  }
+  post_participant_optimizations <- attr(lines, "participant_optimizations",
+                                         exact = TRUE)
+  if (is.null(post_participant_optimizations)) {
+    post_participant_optimizations <- 0L
+  }
+  post_interviewer_index <- count_speaker_index_labels(lines, "Interviewer")
+  post_participant_index <- count_speaker_index_labels(lines, "Participant")
   if (isTRUE(report_redacted)) {
     found_names <- phrases_found(lines, sets$names_text)
     found_other <- phrases_found(lines, sets$other_all)
   }
-
-  lines <- leading_speaker_label(lines, sets$int_set, "Interviewer")
-  lines <- leading_speaker_label(lines, sets$ive_set, "Participant")
-  redacted <- redact_phrases(lines, sets$names_text, redacted_token)
-  redacted <- redact_phrases(redacted, sets$other_all, redacted_token)
+  phrase_groups <- build_redaction_phrase_groups(interviewers,
+                                                 interviewees,
+                                                 redact_interviewer,
+                                                 sets$other_all)
+  redacted_result <- redact_phrase_groups(
+    lines,
+    phrase_groups,
+    redacted_token
+  )
+  redacted <- redacted_result$text
+  redaction_report <- build_redaction_report(
+    redacted_result$counts,
+    original_interviewer_names,
+    original_participant_names,
+    post_interviewer_index,
+    post_participant_index,
+    post_interviewer_optimizations,
+    post_participant_optimizations
+  )
 
   if (isTRUE(report_redacted)) {
-    if (length(found_names)) {
-      message("Names redacted: ", paste(found_names, collapse = ", "))
-    }
-    if (length(found_other)) {
-      message("Other phrases redacted: ", paste(found_other, collapse = ", "))
-    }
+    report_redaction_summary(found_names, found_other)
+    print_redaction_report(redaction_report)
   }
 
   output_path <- resolve_output_path(filepath, output_path, suffix, fmt)
   write_redacted_lines(redacted, output_path, fmt,
                        add_blank_line_between_turns)
 
+  attr(output_path, "redaction_report") <- redaction_report
   invisible(output_path)
 }
 
@@ -137,14 +168,14 @@ write_redacted_lines <- function(redacted, output_path, fmt,
     writeLines(redacted, con = con, sep = "\n", useBytes = TRUE)
   } else if (identical(fmt, "docx")) {
     doc <- officer::read_docx()
+    if (isTRUE(add_blank_line_between_turns)) {
+      redacted <- add_blanks_between_speaker_changes(redacted)
+    }
     if (length(redacted)) {
       for (ln in redacted) {
         doc <- officer::body_add_par(doc,
                                      ifelse(is.na(ln), "", ln),
                                      style = "Normal")
-        if (add_blank_line_between_turns) {
-          doc <- officer::body_add_par(doc, "", style = "Normal")
-        }
       }
     }
     print(doc, target = output_path)

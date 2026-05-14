@@ -102,6 +102,18 @@ ghost_batch <- function(input_dir,
 
     out_file <- NA_character_
     status <- "ok"
+    redaction_report <- data.frame(
+      pre_int_name = NA_integer_,
+      post_int_name = NA_integer_,
+      post_int_optimization = NA_integer_,
+      post_int_name_other = NA_integer_,
+      pre_part_name = NA_integer_,
+      post_part_name = NA_integer_,
+      post_part_optimization = NA_integer_,
+      post_part_name_other = NA_integer_,
+      other_redactions = NA_integer_,
+      stringsAsFactors = FALSE
+    )
 
     handler <- switch(ext,
                       vtt  = ghost_vtt,
@@ -120,23 +132,29 @@ ghost_batch <- function(input_dir,
                out_format  = target_fmt),
           common_args
         ))
+        handler_report <- attr(out_file, "redaction_report", exact = TRUE)
+        if (is.data.frame(handler_report) && nrow(handler_report) == 1) {
+          redaction_report <- handler_report
+        }
       }, error = function(e) {
         status <<- paste0("error: ", conditionMessage(e))
         out_file <<- NA_character_
       })
     }
 
-    results[[i]] <- data.frame(
+    results[[i]] <- cbind(data.frame(
       input_file  = f,
       output_file = if (is.character(out_file) && length(out_file) == 1) out_file else NA_character_,
       status      = status,
       stringsAsFactors = FALSE
-    )
+    ), redaction_report)
 
     utils::setTxtProgressBar(pb, i)
   }
 
-  invisible(do.call(rbind, results))
+  out <- do.call(rbind, results)
+  attr(out, "redaction_report_definitions") <- redaction_report_definitions()
+  invisible(out)
 }
 
 #' Empty result skeleton returned when no files match

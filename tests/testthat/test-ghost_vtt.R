@@ -69,6 +69,90 @@ test_that("ghost_vtt writes txt and relabels multiple patterns", {
   expect_true(any(grepl("Participant|Interviewer", out)))
 })
 
+test_that("ghost_vtt adds txt blanks only when speaker changes", {
+  td <- tempfile("gvtt_blanks_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "same-speaker.vtt")
+  outfile <- file.path(td, "same-speaker.txt")
+  writeLines(c(
+    "WEBVTT", "",
+    "1", "00:00:00.000 --> 00:00:01.000", "Kailey Rivera: Hello", "",
+    "2", "00:00:01.000 --> 00:00:02.000", "Kailey Rivera: Follow-up", "",
+    "3", "00:00:02.000 --> 00:00:03.000", "Alex Baloney: Hi", ""
+  ), infile, useBytes = TRUE)
+
+  ghost_vtt(
+    filepath = infile,
+    interviewers = "Kailey Rivera",
+    interviewees = "Alex Baloney",
+    add_blank_line_between_turns = TRUE,
+    out_format = "txt",
+    output_path = outfile
+  )
+
+  out <- readLines(outfile, warn = FALSE)
+  expect_identical(
+    out,
+    c("Interviewer: Hello Follow-up",
+      "",
+      "Participant: Hi")
+  )
+})
+
+test_that("ghost_vtt collapses same-speaker VTT cues under the first timestamp", {
+  td <- tempfile("gvtt_collapse_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "same-speaker.vtt")
+  outfile <- file.path(td, "same-speaker-out.vtt")
+  writeLines(c(
+    "WEBVTT", "",
+    "1", "00:00:00.000 --> 00:00:01.000", "Kailey Rivera: Hello", "",
+    "2", "00:00:01.000 --> 00:00:02.000", "Kailey Rivera: Follow-up", "",
+    "3", "00:00:02.000 --> 00:00:03.000", "Alex Baloney: Hi", ""
+  ), infile, useBytes = TRUE)
+
+  ghost_vtt(
+    filepath = infile,
+    interviewers = "Kailey Rivera",
+    interviewees = "Alex Baloney",
+    out_format = "vtt",
+    output_path = outfile
+  )
+
+  out <- readLines(outfile, warn = FALSE)
+  expect_true(any(out == "00:00:00.000 --> 00:00:01.000"))
+  expect_false(any(out == "00:00:01.000 --> 00:00:02.000"))
+  expect_true(any(out == "Interviewer: Hello"))
+  expect_true(any(out == "Follow-up"))
+  expect_equal(sum(grepl("-->", out)), 2)
+})
+
+test_that("ghost_vtt reports speaker turn optimization count", {
+  td <- tempfile("gvtt_opt_count_", fileext = ""); dir.create(td)
+  infile <- file.path(td, "same-speaker.vtt")
+  outfile <- file.path(td, "same-speaker-out.txt")
+  writeLines(c(
+    "WEBVTT", "",
+    "1", "00:00:00.000 --> 00:00:01.000", "Kailey Rivera: Hello", "",
+    "2", "00:00:01.000 --> 00:00:02.000", "Kailey Rivera: Follow-up", "",
+    "3", "00:00:02.000 --> 00:00:03.000", "Kailey Rivera: Final point", "",
+    "4", "00:00:03.000 --> 00:00:04.000", "Alex Baloney: Hi", ""
+  ), infile, useBytes = TRUE)
+
+  expect_output(
+    res <- ghost_vtt(
+      filepath = infile,
+      interviewers = "Kailey Rivera",
+      interviewees = "Alex Baloney",
+      report_redacted = TRUE,
+      out_format = "txt",
+      output_path = outfile
+    ),
+    regexp = "post_int_optimization"
+  )
+  report <- attr(res, "redaction_report", exact = TRUE)
+  expect_equal(report$post_int_optimization, 2)
+  expect_equal(report$post_part_optimization, 0)
+})
+
 test_that("ghost_vtt redact_other only redacts listed phrase", {
   td <- tempfile("gvtt_strict_", fileext = ""); dir.create(td)
   infile <- file.path(td, "sample.vtt")
