@@ -6,7 +6,7 @@
 \usage{
 ghost_batch(
   input_dir,
-  interviewers,
+  interviewers = character(),
   interviewees = character(),
   redact_other = character(),
   redact_interviewer = TRUE,
@@ -17,7 +17,10 @@ ghost_batch(
   recursive = FALSE,
   suffix = "_redacted",
   out_format = NULL,
-  report_redacted = FALSE
+  report_redacted = FALSE,
+  review_names = interactive(),
+  name_review_min_score = 2,
+  show_completion_notice = review_names
 )
 }
 \arguments{
@@ -54,6 +57,18 @@ line between turns.}
 timestamps (handled by \code{\link[=ghost_docx]{ghost_docx()}}/\code{\link[=ghost_txt]{ghost_txt()}}).}
 
 \item{report_redacted}{If \code{TRUE}, print phrases found/redacted per file.}
+
+\item{review_names}{If \code{TRUE}, open one local Shiny app for the batch to
+classify likely names detected across all files by rule-based matching as
+interviewer, participant, or other redaction terms. Selected terms are
+applied to every transcript in the batch. The app also accepts manually
+typed \code{redact_other} terms. Defaults to \code{interactive()}.}
+
+\item{name_review_min_score}{Minimum rule-based score for a candidate to
+appear in the review app.}
+
+\item{show_completion_notice}{If \code{TRUE}, open a local completion notice after
+all batch outputs are written. Defaults to \code{review_names}.}
 }
 \value{
 A data.frame with \code{input_file}, \code{output_file}, and \code{status} columns.

@@ -165,3 +165,79 @@ test_that("ghost_batch passes strict redact_other behavior through handlers", {
   expect_true(any(grepl("\\bFruit\\b", got)))
   expect_false(any(grepl("Dragon Fruit", got, ignore.case = TRUE)))
 })
+
+test_that("ghost_batch review text supports one deduplicated alphabetical candidate list", {
+  td <- tempfile("gb_review_text_", fileext = "")
+  dir.create(td)
+
+  txt <- file.path(td, "a.txt")
+  writeLines(c("Kwame Mensah: hello", "Amina Diop was present"), txt)
+
+  vtt <- file.path(td, "b.vtt")
+  writeLines(c(
+    "WEBVTT", "",
+    "1", "00:00:00.000 --> 00:00:01.000", "Kwame Mensah: again", "",
+    "2", "00:00:01.000 --> 00:00:02.000", "Jose Alvarez: hi", ""
+  ), vtt)
+
+  candidates <- find_likely_names(collect_batch_review_text(c(txt, vtt)))
+
+  expect_identical(
+    candidates$candidate,
+    c("Amina Diop", "Jose Alvarez", "Kwame Mensah")
+  )
+})
+
+test_that("likely name detection excludes common capitalized English words", {
+  candidates <- find_likely_names(c(
+    "It: should not be a speaker name",
+    "But: should not be a speaker name",
+    "He: should not be a speaker name",
+    "And Amina Diop spoke next",
+    "Because Jose Alvarez was present",
+    "In Kwame Mensah's interview",
+    "As Nguyen Thi Mai explained",
+    "Amina Diop: should be listed",
+    "Jose Alvarez was present"
+  ))
+
+  expect_false(any(c("It", "But", "He") %in% candidates$candidate))
+  expect_false(any(c("And Amina Diop", "Because Jose Alvarez",
+                     "In Kwame Mensah", "As Nguyen Thi Mai") %in%
+                     candidates$candidate))
+  expect_true(all(c("Amina Diop", "Jose Alvarez", "Kwame Mensah",
+                    "Nguyen Thi Mai") %in% candidates$candidate))
+  expect_identical(candidates$candidate, sort(candidates$candidate))
+})
+
+test_that("batch completion report hides input files and includes totals", {
+  report <- data.frame(
+    input_file = c("raw/a.vtt", "raw/b.vtt"),
+    output_file = c("out/a.docx", "out/b.docx"),
+    status = c("ok", "ok"),
+    pre_int_name = c(1L, 2L),
+    post_int_name = c(1L, 1L),
+    post_int_optimization = c(0L, 1L),
+    post_int_name_other = c(0L, 2L),
+    pre_part_name = c(3L, 4L),
+    post_part_name = c(1L, 1L),
+    post_part_optimization = c(1L, 0L),
+    post_part_name_other = c(2L, 3L),
+    other_redactions = c(5L, 6L),
+    stringsAsFactors = FALSE
+  )
+
+  tables <- completion_report_tables(report)
+
+  expect_identical(tables$summary_title, "Summary across transcripts")
+  expect_identical(tables$detail_title, "Per-transcript report")
+  expect_false("input file" %in% names(tables$detail))
+  expect_false("status" %in% names(tables$detail))
+  expect_true("output file" %in% names(tables$detail))
+
+  totals <- stats::setNames(as.integer(tables$summary$count),
+                            tables$summary$term)
+  expect_equal(totals[["pre_int_name"]], 3L)
+  expect_equal(totals[["pre_part_name"]], 7L)
+  expect_equal(totals[["other_redactions"]], 11L)
+})

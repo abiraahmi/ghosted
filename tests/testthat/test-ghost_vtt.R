@@ -92,8 +92,10 @@ test_that("ghost_vtt adds txt blanks only when speaker changes", {
   out <- readLines(outfile, warn = FALSE)
   expect_identical(
     out,
-    c("Interviewer: Hello Follow-up",
+    c("00:00:00.000 --> 00:00:01.000",
+      "Interviewer: Hello Follow-up",
       "",
+      "00:00:02.000 --> 00:00:03.000",
       "Participant: Hi")
   )
 })
@@ -151,6 +153,32 @@ test_that("ghost_vtt reports speaker turn optimization count", {
   report <- attr(res, "redaction_report", exact = TRUE)
   expect_equal(report$post_int_optimization, 2)
   expect_equal(report$post_part_optimization, 0)
+})
+
+test_that("ghost_vtt txt output puts timestamps above speaker labels", {
+  td <- tempfile("gvtt_timestamp_lines_", fileext = "")
+  dir.create(td)
+  infile <- file.path(td, "sample.vtt")
+  outfile <- file.path(td, "sample.txt")
+
+  writeLines(c(
+    "WEBVTT", "",
+    "1", "00:00:00.000 --> 00:00:01.000", "Kailey Rivera: Hello", "",
+    "2", "00:00:01.000 --> 00:00:02.000", "Alex Baloney: Hi", ""
+  ), infile, useBytes = TRUE)
+
+  ghost_vtt(
+    filepath = infile,
+    interviewers = "Kailey Rivera",
+    interviewees = "Alex Baloney",
+    out_format = "txt",
+    output_path = outfile
+  )
+
+  out <- readLines(outfile, warn = FALSE)
+  speaker_lines <- grep("^(Interviewer|Participant):", out)
+  expect_true(length(speaker_lines) > 0)
+  expect_true(all(grepl("-->", out[speaker_lines - 1])))
 })
 
 test_that("ghost_vtt redact_other only redacts listed phrase", {
@@ -211,7 +239,8 @@ test_that("ghost_vtt report_redacted emits messages", {
     # run once to create file
     ghost_vtt(vtt, interviewers = "Kailey Rivera", interviewees = "Alex Baloney",
               output_path = file.path(tempdir(), paste0(basename(tools::file_path_sans_ext(vtt)), "_r.vtt")),
-              out_format = "vtt")
+              out_format = "vtt",
+              report_redacted = FALSE)
   })
 
   # Now with report_redacted = TRUE and other phrase set

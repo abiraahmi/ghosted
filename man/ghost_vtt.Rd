@@ -6,7 +6,7 @@
 \usage{
 ghost_vtt(
   filepath,
-  interviewers,
+  interviewers = character(),
   interviewees = character(),
   redact_other = character(),
   redact_interviewer = TRUE,
@@ -16,7 +16,10 @@ ghost_vtt(
   output_path = NULL,
   suffix = "_redacted",
   out_format = c("vtt", "docx", "txt"),
-  report_redacted = FALSE
+  report_redacted = FALSE,
+  review_names = interactive(),
+  name_review_min_score = 2,
+  show_completion_notice = review_names
 )
 }
 \arguments{
@@ -53,6 +56,17 @@ on \code{out_format}.}
 output file extension.}
 
 \item{report_redacted}{If \code{TRUE}, prints which phrases were found and redacted.}
+
+\item{review_names}{If \code{TRUE}, open a local Shiny app to classify likely
+names detected by rule-based matching as interviewer, participant, or
+other redaction terms. The app also accepts manually typed \code{redact_other}
+terms. Defaults to \code{interactive()}.}
+
+\item{name_review_min_score}{Minimum rule-based score for a candidate to
+appear in the review app.}
+
+\item{show_completion_notice}{If \code{TRUE}, open a local completion notice after
+the redacted output is written. Defaults to \code{review_names}.}
 }
 \value{
 Invisibly, the output path written.
@@ -67,6 +81,8 @@ text file.
 Redaction mirrors the standalone logic used in \code{\link[=ghost_docx]{ghost_docx()}} and
 \code{\link[=ghost_txt]{ghost_txt()}}: full names are also split into parts (e.g., first/last and
 hyphenated pieces) and replaced longest-first with tokens.
+For TXT and DOCX outputs, each cue timestamp is written on the line above
+the corresponding speaker/text line.
 }
 \examples{
 # Write redacted VTT next to source:

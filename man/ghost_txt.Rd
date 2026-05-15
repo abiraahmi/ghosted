@@ -6,7 +6,7 @@
 \usage{
 ghost_txt(
   filepath,
-  interviewers,
+  interviewers = character(),
   interviewees = character(),
   redact_other = character(),
   redact_interviewer = TRUE,
@@ -16,7 +16,10 @@ ghost_txt(
   output_path = NULL,
   suffix = "_redacted",
   out_format = c("txt", "docx", "vtt"),
-  report_redacted = FALSE
+  report_redacted = FALSE,
+  review_names = interactive(),
+  name_review_min_score = 2,
+  show_completion_notice = review_names
 )
 }
 \arguments{
@@ -57,6 +60,17 @@ file type. Defaults to \code{"txt"}.}
 
 \item{report_redacted}{If \code{TRUE}, print to the R console which phrases were
 found and redacted (names and other).}
+
+\item{review_names}{If \code{TRUE}, open a local Shiny app to classify likely
+names detected by rule-based matching as interviewer, participant, or
+other redaction terms. The app also accepts manually typed \code{redact_other}
+terms. Defaults to \code{interactive()}.}
+
+\item{name_review_min_score}{Minimum rule-based score for a candidate to
+appear in the review app.}
+
+\item{show_completion_notice}{If \code{TRUE}, open a local completion notice after
+the redacted output is written. Defaults to \code{review_names}.}
 }
 \value{
 The path to the written output file (invisibly).
