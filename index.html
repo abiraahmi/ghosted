@@ -5,19 +5,19 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Deidentify &amp; Batch Process Transcript Files • ghosted</title>
+<title>Deidentify Transcript Files with a Local App • ghosted</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" sizes="any" href="favicon.ico">
 <link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Deidentify &amp; Batch Process Transcript Files">
-<meta name="description" content="Provides tools to parse, collapse, and deidentify WebVTT transcript files. The package supports batch processing of transcripts, speaker relabeling, name redaction, and export to formatted Word documents. Designed for use in research workflows that require structured and reproducible transcript deidentification.">
-<meta property="og:description" content="Provides tools to parse, collapse, and deidentify WebVTT transcript files. The package supports batch processing of transcripts, speaker relabeling, name redaction, and export to formatted Word documents. Designed for use in research workflows that require structured and reproducible transcript deidentification.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Deidentify Transcript Files with a Local App">
+<meta name="description" content="Provides a local Shiny app for batch deidentification of transcript files. The app scans folders of WebVTT, Word, and plain-text transcripts, supports speaker relabeling, name and term redaction, likely-name review, and export to redacted transcript files. Designed for research workflows that require local, reproducible transcript deidentification.">
+<meta property="og:description" content="Provides a local Shiny app for batch deidentification of transcript files. The app scans folders of WebVTT, Word, and plain-text transcripts, supports speaker relabeling, name and term redaction, likely-name review, and export to redacted transcript files. Designed for research workflows that require local, reproducible transcript deidentification.">
 <meta property="og:image" content="https://abiraahmi.github.io/ghosted/logo.png">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ghosted</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,56 +65,15 @@
 <!-- badges: start -->
 <!-- badges: end -->
 </div>
-<p>De-identify transcripts with helpers:</p>
+<p>De-identify transcript batches with one local app:</p>
 <ul>
 <li>
-<code><a href="reference/ghost_vtt.html">ghost_vtt()</a></code> — redact a <code>.vtt</code> (Zoom/WebVTT) file and write <code>.vtt</code>/<code>.docx</code>/<code>.txt</code>; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_path</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
-<li>
-<code><a href="reference/ghost_docx.html">ghost_docx()</a></code> — redact a <code>.docx</code> and write <code>.docx</code>/<code>.txt</code>/<code>.vtt</code>; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_path</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
-<li>
-<code><a href="reference/ghost_txt.html">ghost_txt()</a></code> — redact a <code>.txt</code> and write <code>.txt</code>/<code>.docx</code>/<code>.vtt</code>; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_path</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
-<li>
-<code><a href="reference/ghost_batch.html">ghost_batch()</a></code> — run the same logic across a folder of <code>.vtt</code>/<code>.docx</code>/<code>.txt</code> files; supports <code>redact_other</code>, <code>redact_interviewer</code>, <code>include_common_names</code>, <code>redacted_token</code>, <code>add_blank_line_between_turns</code>, <code>output_dir</code>, <code>suffix</code>, <code>out_format</code>, <code>report_redacted</code>.</li>
+<code><a href="reference/ghost.html">ghost()</a></code> opens a local Shiny app for <code>.vtt</code>, <code>.docx</code>, and <code>.txt</code> transcripts.</li>
+<li>The app asks for input/output directories, known interviewer names, known participant names, and other terms to redact.</li>
+<li>It scans the input directory, reviews likely names detected with local rule-based matching, and writes redacted transcripts to the output directory.</li>
+<li>It also includes options for output format, filename suffix, redaction token, blank lines between turns, console reports, common-name redaction, and the completion notice.</li>
 </ul>
-<p>Common arguments (ghost_vtt/ghost_docx/ghost_txt):</p>
-<ul>
-<li>
-<code>filepath</code>: input file path (<code>.vtt</code>/<code>.docx</code>/<code>.txt</code> respectively).</li>
-<li>
-<code>interviewers</code>: character vector of interviewer names (required).</li>
-<li>
-<code>interviewees</code>: character vector of participant names (optional).</li>
-<li>
-<code>redact_other</code>: additional words/phrases to redact.</li>
-<li>
-<code>redact_interviewer</code>: if <code>TRUE</code>, also redact interviewer names in text.</li>
-<li>
-<code>include_common_names</code>: if <code>TRUE</code>, include <code>ghosted::common_names_default()</code> if available.</li>
-<li>
-<code>redacted_token</code>: replacement token for redactions (default <code>[REDACTED]</code>).</li>
-<li>
-<code>add_blank_line_between_turns</code>: for DOCX/TXT outputs, insert a blank line between turns.</li>
-<li>
-<code>output_path</code>: explicit output file path; if <code>NULL</code>, uses input dir with <code>suffix</code>.</li>
-<li>
-<code>suffix</code>: appended to base name when auto-generating outputs (default <code>"_redacted"</code>).</li>
-<li>
-<code>out_format</code>: output type. Allowed values per function:
-<ul>
-<li>
-<code><a href="reference/ghost_vtt.html">ghost_vtt()</a></code>: <code>"vtt"</code> (default), <code>"docx"</code>, <code>"txt"</code>
-</li>
-<li>
-<code><a href="reference/ghost_docx.html">ghost_docx()</a></code>: <code>"docx"</code> (default), <code>"txt"</code>, <code>"vtt"</code>
-</li>
-<li>
-<code><a href="reference/ghost_txt.html">ghost_txt()</a></code>: <code>"txt"</code> (default), <code>"docx"</code>, <code>"vtt"</code>
-</li>
-</ul>
-</li>
-<li>
-<code>report_redacted</code>: if <code>TRUE</code>, prints which phrases were found and redacted.</li>
-</ul>
+<p>The app runs locally on your computer and does not use AI or remote services.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -125,49 +84,35 @@
 <span></span>
 <span><span class="co"># or with pak</span></span>
 <span><span class="co"># pak::pak("abiraahmi/ghosted")</span></span></code></pre></div>
+<p>Installing <code>ghosted</code> also installs the runtime packages the app needs, including <code>shiny</code> for the app interface and <code>officer</code> for DOCX reads and writes.</p>
 </div>
 <div class="section level2">
-<h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
+<h2 id="use">Use<a class="anchor" aria-label="anchor" href="#use"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://abiraahmi.github.io/ghosted/">ghosted</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># VTT → DOCX (or "vtt"/"txt")</span></span>
-<span><span class="fu"><a href="reference/ghost_vtt.html">ghost_vtt</a></span><span class="op">(</span></span>
-<span>  filepath     <span class="op">=</span> <span class="st">"inst/data/sample.vtt"</span>,</span>
-<span>  interviewers <span class="op">=</span> <span class="st">"Sansa Stark"</span>,</span>
-<span>  interviewees <span class="op">=</span> <span class="st">"Arya Stark"</span>,</span>
-<span>  out_format   <span class="op">=</span> <span class="st">"docx"</span>,</span>
-<span>  output_path  <span class="op">=</span> <span class="st">"output/sample_DEID.docx"</span>,</span>
-<span>  suffix       <span class="op">=</span> <span class="st">"_DEID"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># DOCX → DOCX</span></span>
-<span><span class="fu"><a href="reference/ghost_docx.html">ghost_docx</a></span><span class="op">(</span></span>
-<span>  filepath     <span class="op">=</span> <span class="st">"inst/data/transcript.docx"</span>,</span>
-<span>  interviewers <span class="op">=</span> <span class="st">"Sansa Stark"</span>,</span>
-<span>  interviewees <span class="op">=</span> <span class="st">"Arya Stark"</span>,</span>
-<span>  output_path  <span class="op">=</span> <span class="st">"output/transcript_DEID.docx"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># TXT → TXT</span></span>
-<span><span class="fu"><a href="reference/ghost_txt.html">ghost_txt</a></span><span class="op">(</span></span>
-<span>  filepath     <span class="op">=</span> <span class="st">"inst/data/notes.txt"</span>,</span>
-<span>  interviewers <span class="op">=</span> <span class="st">"Sansa Stark"</span>,</span>
-<span>  interviewees <span class="op">=</span> <span class="st">"Arya Stark"</span>,</span>
-<span>  output_path  <span class="op">=</span> <span class="st">"output/notes_DEID.txt"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Batch a folder (keep file types)</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ghost_batch.html">ghost_batch</a></span><span class="op">(</span></span>
-<span>  input_dir    <span class="op">=</span> <span class="st">"inst/data/transcripts"</span>,</span>
-<span>  interviewers <span class="op">=</span> <span class="st">"Sansa Stark"</span>,</span>
-<span>  interviewees <span class="op">=</span> <span class="st">"Arya Stark"</span>,</span>
-<span>  output_dir   <span class="op">=</span> <span class="st">"output"</span>,</span>
-<span>  suffix       <span class="op">=</span> <span class="st">"_DEID"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
-<p>Notes - Leading speaker tokens at line start (e.g., <code>Name:</code> or <code>&lt;v Name&gt;</code>) are normalized to <code>Interviewer</code>/<code>Participant</code> while names elsewhere are redacted. - For DOCX/TXT → VTT conversions in <code>ghost_batch(out_format = "vtt")</code>, cues are written without timestamps. - Ensure <code>officer</code> is installed for <code>.docx</code> reads/writes.</p>
+<span><span class="fu"><a href="reference/ghost.html">ghost</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>In the app:</p>
+<ol style="list-style-type: decimal">
+<li>Enter the input directory containing <code>.vtt</code>, <code>.docx</code>, or <code>.txt</code> transcripts.</li>
+<li>Enter an output directory, or leave it blank to write outputs next to the input files.</li>
+<li>Choose processing options, such as output format and redaction token.</li>
+<li>List known interviewer and participant names, plus any other terms to redact.</li>
+<li>Click <strong>Scan directory</strong>.</li>
+<li>Review likely names and mark them as interviewer, participant, or other.</li>
+<li>Click <strong>Redact transcripts</strong>.</li>
+</ol>
+<p>When you run <code><a href="reference/ghost.html">ghost()</a></code> again in the same R session, the app preloads the directories, options, names, and likely-name selections from the previous run.</p>
+</div>
+<div class="section level2">
+<h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a>
+</h2>
+<ul>
+<li>Leading speaker tokens at line start, such as <code>Name:</code> or <code>&lt;v Name&gt;</code>, are normalized to <code>Interviewer</code> or <code>Participant</code>.</li>
+<li>Names elsewhere in the transcript body are replaced with the selected redaction token.</li>
+<li>For DOCX/TXT to VTT output, cues are written without timestamps.</li>
+</ul>
 </div>
 
   </main><aside class="col-md-3"><div class="license">
@@ -192,7 +137,6 @@
 <li>Abiraahmi Shankar <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0001-8354-5353" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>Catalina Canizares <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0000-0002-6854-5205" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>Francisco Cardozo <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0000-0002-1925-4954" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
-<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
