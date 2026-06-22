@@ -3,7 +3,7 @@
 #' Reads a `.docx` file as raw paragraphs, applies in-function redaction, and writes a
 #' redacted file. No speaker/text data.frame is created; the document is treated
 #' as a sequence of paragraphs. You can choose the output format (DOCX/TXT/VTT)
-#' via `out_format` similar to [ghost_vtt()] and [ghost_batch()].
+#' via `out_format` similar to `ghost_vtt()` and `ghost_batch()`.
 #'
 #' @param filepath Path to a `.docx` file.
 #' @param interviewers Character vector of interviewer names.
@@ -18,9 +18,8 @@
 #'   bundled in the installed version.
 #' @param redacted_token Replacement token used for redactions (names and other
 #'   phrases).
-#' @param add_blank_line_between_turns Logical; for TXT/DOCX outputs when
-#'   converting formats, insert a blank line between turns. This does not affect
-#'   DOCX→DOCX.
+#' @param add_blank_line_between_turns Logical; for TXT/DOCX outputs, insert a
+#'   blank line between turns.
 #' @param output_path Path for the redacted file. If `NULL` (default), set to the
 #'   same directory and base name as `filepath` with `_redacted` before the
 #'   extension. The extension is chosen based on `out_format` (e.g.
@@ -32,6 +31,14 @@
 #'   file type. Defaults to `"docx"`.
 #' @param report_redacted If `TRUE`, print to the R console which phrases were
 #'   found and redacted (names and other).
+#' @param review_names If `TRUE`, open a local Shiny app to classify likely
+#'   names detected by rule-based matching as interviewer, participant, or
+#'   other redaction terms. The app also accepts manually typed `redact_other`
+#'   terms. Defaults to `interactive()`.
+#' @param name_review_min_score Minimum rule-based score for a candidate to
+#'   appear in the review app.
+#' @param show_completion_notice If `TRUE`, open a local completion notice after
+#'   the redacted output is written. Defaults to `review_names`.
 #' @return The path to the written output file (invisibly).
 #' @examples
 #' # Writes report_redacted.docx in same folder, returns path:
@@ -42,9 +49,9 @@
 #' # With common names and redaction report:
 #' # ghost_docx("report.docx", interviewers = "Dr. Smith", interviewees = "Jane Doe",
 #' #   include_common_names = TRUE, report_redacted = TRUE)
-#' @export
+#' @noRd
 ghost_docx <- function(filepath,
-                       interviewers,
+                       interviewers = character(),
                        interviewees = character(),
                        redact_other = character(),
                        redact_interviewer = TRUE,
@@ -54,7 +61,10 @@ ghost_docx <- function(filepath,
                        output_path = NULL,
                        suffix = "_redacted",
                        out_format = c("docx", "txt", "vtt"),
-                       report_redacted = FALSE) {
+                       report_redacted = FALSE,
+                       review_names = FALSE,
+                       name_review_min_score = 2,
+                       show_completion_notice = review_names) {
 
   if (!is.character(filepath) || length(filepath) != 1 || !nzchar(filepath)) {
     stop("Provide a single 'filepath' to a .docx file")
@@ -65,11 +75,14 @@ ghost_docx <- function(filepath,
 
   fmt <- match.arg(out_format)
 
-  if (isTRUE(redact_interviewer) && length(interviewers) < 1) {
-    stop("Provide interviewer names when redact_interviewer = TRUE")
-  }
-
   paragraphs <- read_docx_paragraphs(filepath)
+
+  reviewed <- review_redaction_terms(paragraphs, interviewers, interviewees,
+                                     redact_other, review_names,
+                                     name_review_min_score)
+  interviewers <- reviewed$interviewers
+  interviewees <- reviewed$interviewees
+  redact_other <- reviewed$redact_other
 
   sets <- build_phrase_sets(
     interviewers        = interviewers,
@@ -81,29 +94,63 @@ ghost_docx <- function(filepath,
 
   found_names <- character()
   found_other <- character()
+  post_interviewer_optimizations <- 0L
+  post_participant_optimizations <- 0L
+  original_interviewer_names <- count_phrase_occurrences(paragraphs, interviewers)
+  original_participant_names <- count_phrase_occurrences(paragraphs, interviewees)
+
+  paragraphs <- leading_speaker_label(paragraphs, sets$int_set, "Interviewer")
+  paragraphs <- leading_speaker_label(paragraphs, sets$ive_set, "Participant")
+  paragraphs <- collapse_consecutive_speaker_lines(paragraphs)
+  post_interviewer_optimizations <- attr(paragraphs,
+                                         "interviewer_optimizations",
+                                         exact = TRUE)
+  if (is.null(post_interviewer_optimizations)) {
+    post_interviewer_optimizations <- 0L
+  }
+  post_participant_optimizations <- attr(paragraphs,
+                                         "participant_optimizations",
+                                         exact = TRUE)
+  if (is.null(post_participant_optimizations)) {
+    post_participant_optimizations <- 0L
+  }
+  post_interviewer_index <- count_speaker_index_labels(paragraphs, "Interviewer")
+  post_participant_index <- count_speaker_index_labels(paragraphs, "Participant")
   if (isTRUE(report_redacted)) {
     found_names <- phrases_found(paragraphs, sets$names_text)
     found_other <- phrases_found(paragraphs, sets$other_all)
   }
-
-  paragraphs <- leading_speaker_label(paragraphs, sets$int_set, "Interviewer")
-  paragraphs <- leading_speaker_label(paragraphs, sets$ive_set, "Participant")
-  redacted <- redact_phrases(paragraphs, sets$names_text, redacted_token)
-  redacted <- redact_phrases(redacted, sets$other_all, redacted_token)
+  phrase_groups <- build_redaction_phrase_groups(interviewers,
+                                                 interviewees,
+                                                 redact_interviewer,
+                                                 sets$other_all)
+  redacted_result <- redact_phrase_groups(
+    paragraphs,
+    phrase_groups,
+    redacted_token
+  )
+  redacted <- redacted_result$text
+  redaction_report <- build_redaction_report(
+    redacted_result$counts,
+    original_interviewer_names,
+    original_participant_names,
+    post_interviewer_index,
+    post_participant_index,
+    post_interviewer_optimizations,
+    post_participant_optimizations
+  )
 
   if (isTRUE(report_redacted)) {
-    if (length(found_names)) {
-      message("Names redacted: ", paste(found_names, collapse = ", "))
-    }
-    if (length(found_other)) {
-      message("Other phrases redacted: ", paste(found_other, collapse = ", "))
-    }
+    report_redaction_summary(found_names, found_other)
+    print_redaction_report(redaction_report)
   }
 
   output_path <- resolve_output_path(filepath, output_path, suffix, fmt)
   write_redacted_paragraphs(redacted, output_path, fmt,
                             add_blank_line_between_turns)
 
+  attr(output_path, "redaction_report") <- redaction_report
+  show_redaction_complete(show_completion_notice, report = redaction_report)
   invisible(output_path)
 }
 
@@ -116,8 +163,8 @@ ghost_docx <- function(filepath,
 #' Returns `character(0)` for an empty document.
 #' @noRd
 read_docx_paragraphs <- function(filepath) {
-  doc <- officer::read_docx(path = filepath)
-  ds <- officer::docx_summary(doc)
+  doc <- suppress_docx_namespace_warning(officer::read_docx(path = filepath))
+  ds <- suppress_docx_namespace_warning(officer::docx_summary(doc))
   # docx_summary() returns NULL for an empty document, not a 0-row data.frame.
   if (is.null(ds) || !is.data.frame(ds) || !nrow(ds)) return(character())
   if ("content_type" %in% names(ds)) {
@@ -145,7 +192,10 @@ write_redacted_paragraphs <- function(redacted, output_path, fmt,
   if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
   if (identical(fmt, "docx")) {
-    out_doc <- officer::read_docx()
+    out_doc <- suppress_docx_namespace_warning(officer::read_docx())
+    if (isTRUE(add_blank_line_between_turns)) {
+      redacted <- add_blanks_between_speaker_changes(redacted)
+    }
     if (length(redacted)) {
       for (p in redacted) {
         out_doc <- officer::body_add_par(out_doc,
@@ -155,11 +205,11 @@ write_redacted_paragraphs <- function(redacted, output_path, fmt,
     } else {
       out_doc <- officer::body_add_par(out_doc, "", style = "Normal")
     }
-    print(out_doc, target = output_path)
+    suppress_docx_namespace_warning(print(out_doc, target = output_path))
   } else if (identical(fmt, "txt")) {
     out_lines <- redacted
     if (isTRUE(add_blank_line_between_turns) && length(out_lines)) {
-      out_lines <- as.vector(rbind(out_lines, ""))
+      out_lines <- add_blanks_between_speaker_changes(out_lines)
     }
     con <- file(output_path, open = "w", encoding = "UTF-8")
     on.exit(close(con), add = TRUE)

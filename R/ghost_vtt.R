@@ -5,9 +5,11 @@
 #' boundary-aware matching, and writes the result as a WebVTT, Word, or plain
 #' text file.
 #'
-#' Redaction mirrors the standalone logic used in [ghost_docx()] and
-#' [ghost_txt()]: full names are also split into parts (e.g., first/last and
+#' Redaction mirrors the standalone logic used in `ghost_docx()` and
+#' `ghost_txt()`: full names are also split into parts (e.g., first/last and
 #' hyphenated pieces) and replaced longest-first with tokens.
+#' For TXT and DOCX outputs, each cue timestamp is written on the line above
+#' the corresponding speaker/text line.
 #'
 #' @param filepath Path to a `.vtt` file.
 #' @param interviewers Character vector of interviewer names.
@@ -31,6 +33,14 @@
 #' @param out_format One of `"vtt"`, `"docx"`, or `"txt"` controlling the
 #'   output file extension.
 #' @param report_redacted If `TRUE`, prints which phrases were found and redacted.
+#' @param review_names If `TRUE`, open a local Shiny app to classify likely
+#'   names detected by rule-based matching as interviewer, participant, or
+#'   other redaction terms. The app also accepts manually typed `redact_other`
+#'   terms. Defaults to `interactive()`.
+#' @param name_review_min_score Minimum rule-based score for a candidate to
+#'   appear in the review app.
+#' @param show_completion_notice If `TRUE`, open a local completion notice after
+#'   the redacted output is written. Defaults to `review_names`.
 #' @return Invisibly, the output path written.
 #' @examples
 #' # Write redacted VTT next to source:
@@ -38,9 +48,9 @@
 #' # Write redacted DOCX with report:
 #' # ghost_vtt("meeting.vtt", interviewers = "Dr. Smith", interviewees = "Jane Doe",
 #' #   out_format = "docx", report_redacted = TRUE)
-#' @export
+#' @noRd
 ghost_vtt <- function(filepath,
-                      interviewers,
+                      interviewers = character(),
                       interviewees = character(),
                       redact_other = character(),
                       redact_interviewer = TRUE,
@@ -50,7 +60,10 @@ ghost_vtt <- function(filepath,
                       output_path = NULL,
                       suffix = "_redacted",
                       out_format = c("vtt", "docx", "txt"),
-                      report_redacted = FALSE) {
+                      report_redacted = FALSE,
+                      review_names = FALSE,
+                      name_review_min_score = 2,
+                      show_completion_notice = review_names) {
 
   if (!is.character(filepath) || length(filepath) != 1 || !nzchar(filepath)) {
     stop("Provide a single 'filepath' to a .vtt file")
@@ -60,10 +73,6 @@ ghost_vtt <- function(filepath,
   if (!identical(in_ext, "vtt")) stop("filepath must be a .vtt")
 
   fmt <- match.arg(out_format)
-
-  if (isTRUE(redact_interviewer) && length(interviewers) < 1) {
-    stop("Provide interviewer names when redact_interviewer = TRUE")
-  }
 
   # Read raw lines and parse into cue blocks (no data.frame)
   lines <- tryCatch(readLines(filepath, warn = FALSE, encoding = "UTF-8"),
@@ -76,6 +85,13 @@ ghost_vtt <- function(filepath,
   lines <- sub("\r$", "", lines)
 
   cues <- parse_vtt_cues(lines)
+  review_text <- unlist(lapply(cues, `[[`, "text"), use.names = FALSE)
+  reviewed <- review_redaction_terms(review_text, interviewers, interviewees,
+                                     redact_other, review_names,
+                                     name_review_min_score)
+  interviewers <- reviewed$interviewers
+  interviewees <- reviewed$interviewees
+  redact_other <- reviewed$redact_other
 
   sets <- build_phrase_sets(
     interviewers        = interviewers,
@@ -88,10 +104,10 @@ ghost_vtt <- function(filepath,
   all_text <- unlist(lapply(cues, `[[`, "text"), use.names = FALSE)
   found_names <- character()
   found_other <- character()
-  if (isTRUE(report_redacted) && length(all_text)) {
-    found_names <- phrases_found(all_text, sets$names_text)
-    found_other <- phrases_found(all_text, sets$other_all)
-  }
+  post_interviewer_optimizations <- 0L
+  post_participant_optimizations <- 0L
+  original_interviewer_names <- count_phrase_occurrences(all_text, interviewers)
+  original_participant_names <- count_phrase_occurrences(all_text, interviewees)
 
   if (length(cues)) {
     for (k in seq_along(cues)) {
@@ -100,24 +116,66 @@ ghost_vtt <- function(filepath,
                                     vtt_voice_tag = TRUE)
       tvec <- leading_speaker_label(tvec, sets$ive_set, "Participant",
                                     vtt_voice_tag = TRUE)
-      tvec <- redact_phrases(tvec, sets$names_text, redacted_token)
-      tvec <- redact_phrases(tvec, sets$other_all, redacted_token)
       cues[[k]]$text <- tvec
     }
+    cues <- collapse_consecutive_speaker_cues(cues)
+    post_interviewer_optimizations <- attr(cues,
+                                           "interviewer_optimizations",
+                                           exact = TRUE)
+    if (is.null(post_interviewer_optimizations)) {
+      post_interviewer_optimizations <- 0L
+    }
+    post_participant_optimizations <- attr(cues,
+                                           "participant_optimizations",
+                                           exact = TRUE)
+    if (is.null(post_participant_optimizations)) {
+      post_participant_optimizations <- 0L
+    }
   }
+  formatted_text <- unlist(lapply(cues, `[[`, "text"), use.names = FALSE)
+  post_interviewer_index <- count_speaker_index_labels(formatted_text,
+                                                       "Interviewer")
+  post_participant_index <- count_speaker_index_labels(formatted_text,
+                                                       "Participant")
+  if (isTRUE(report_redacted) && length(formatted_text)) {
+    found_names <- phrases_found(formatted_text, sets$names_text)
+    found_other <- phrases_found(formatted_text, sets$other_all)
+  }
+  phrase_groups <- build_redaction_phrase_groups(interviewers,
+                                                 interviewees,
+                                                 redact_interviewer,
+                                                 sets$other_all)
+  redaction_counts <- stats::setNames(integer(length(phrase_groups)),
+                                      names(phrase_groups))
+  if (length(cues)) {
+    for (k in seq_along(cues)) {
+      redacted_result <- redact_phrase_groups(cues[[k]]$text,
+                                              phrase_groups,
+                                              redacted_token)
+      cues[[k]]$text <- redacted_result$text
+      redaction_counts <- redaction_counts + redacted_result$counts
+    }
+  }
+  redaction_report <- build_redaction_report(
+    redaction_counts,
+    original_interviewer_names,
+    original_participant_names,
+    post_interviewer_index,
+    post_participant_index,
+    post_interviewer_optimizations,
+    post_participant_optimizations
+  )
 
   if (isTRUE(report_redacted)) {
-    if (length(found_names)) {
-      message("Names redacted: ", paste(found_names, collapse = ", "))
-    }
-    if (length(found_other)) {
-      message("Other phrases redacted: ", paste(found_other, collapse = ", "))
-    }
+    report_redaction_summary(found_names, found_other)
+    print_redaction_report(redaction_report)
   }
 
   output_path <- resolve_output_path(filepath, output_path, suffix, fmt)
   write_redacted_cues(cues, output_path, fmt, add_blank_line_between_turns)
 
+  attr(output_path, "redaction_report") <- redaction_report
+  show_redaction_complete(show_completion_notice, report = redaction_report)
   invisible(output_path)
 }
 
@@ -184,34 +242,52 @@ write_redacted_cues <- function(cues, output_path, fmt,
       }
     }
   } else if (identical(fmt, "docx")) {
-    doc <- officer::read_docx()
+    doc <- suppress_docx_namespace_warning(officer::read_docx())
     if (length(cues)) {
-      for (idx in seq_along(cues)) {
-        para <- if (length(cues[[idx]]$text)) {
-          paste(cues[[idx]]$text, collapse = " ")
-        } else ""
+      out_lines <- format_cues_with_timestamps(cues,
+                                               add_blank_line_between_turns)
+      for (para in out_lines) {
         doc <- officer::body_add_par(doc, para, style = "Normal")
-        if (add_blank_line_between_turns) {
-          doc <- officer::body_add_par(doc, "", style = "Normal")
-        }
       }
     }
-    print(doc, target = output_path)
+    suppress_docx_namespace_warning(print(doc, target = output_path))
   } else if (identical(fmt, "txt")) {
-    out_lines <- character()
-    if (length(cues)) {
-      for (idx in seq_along(cues)) {
-        para <- if (length(cues[[idx]]$text)) {
-          paste(cues[[idx]]$text, collapse = " ")
-        } else ""
-        out_lines <- c(out_lines, para)
-        if (add_blank_line_between_turns) out_lines <- c(out_lines, "")
-      }
-    }
+    out_lines <- format_cues_with_timestamps(cues,
+                                             add_blank_line_between_turns)
     con <- file(output_path, open = "w", encoding = "UTF-8")
     on.exit(close(con), add = TRUE)
     writeLines(out_lines, con, sep = "\n", useBytes = TRUE)
   } else {
     stop("Unsupported out_format: ", fmt)
   }
+}
+
+#' Format VTT cues for TXT/DOCX while keeping timestamps above speaker labels
+#' @noRd
+format_cues_with_timestamps <- function(cues, add_blank_line_between_turns) {
+  out_lines <- character()
+  previous_speaker <- NA_character_
+
+  if (!length(cues)) return(out_lines)
+
+  for (cue in cues) {
+    text_line <- if (length(cue$text)) paste(cue$text, collapse = " ") else ""
+    current_speaker <- turn_speaker_label(text_line)
+
+    if (isTRUE(add_blank_line_between_turns) &&
+        length(out_lines) &&
+        !is.na(previous_speaker) &&
+        !is.na(current_speaker) &&
+        !identical(previous_speaker, current_speaker)) {
+      out_lines <- c(out_lines, "")
+    }
+
+    out_lines <- c(out_lines, cue$time, text_line)
+
+    if (!is.na(current_speaker)) {
+      previous_speaker <- current_speaker
+    }
+  }
+
+  out_lines
 }

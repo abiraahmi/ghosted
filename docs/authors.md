@@ -16,12 +16,12 @@
 
 ## Citation
 
-Shankar A, Canizares C, Cardozo F (2026). *ghosted: Deidentify & Batch
-Process Transcript Files*. R package version 0.0.2.0,
+Shankar A, Canizares C, Cardozo F (2026). *ghosted: Deidentify
+Transcript Files with a Local App*. R package version 0.0.2.0,
 <https://abiraahmi.github.io/ghosted/>.
 
     @Manual{,
-      title = {ghosted: Deidentify & Batch Process Transcript Files},
+      title = {ghosted: Deidentify Transcript Files with a Local App},
       author = {Abiraahmi Shankar and Catalina Canizares and Francisco Cardozo},
       year = {2026},
       note = {R package version 0.0.2.0},

@@ -9,51 +9,21 @@
 
 </div>
 
-De-identify transcripts with helpers:
+De-identify transcript batches with one local app:
 
-- `ghost_vtt()` — redact a `.vtt` (Zoom/WebVTT) file and write
-  `.vtt`/`.docx`/`.txt`; supports `redact_other`, `redact_interviewer`,
-  `include_common_names`, `redacted_token`,
-  `add_blank_line_between_turns`, `output_path`, `suffix`, `out_format`,
-  `report_redacted`.
-- `ghost_docx()` — redact a `.docx` and write `.docx`/`.txt`/`.vtt`;
-  supports `redact_other`, `redact_interviewer`, `include_common_names`,
-  `redacted_token`, `add_blank_line_between_turns`, `output_path`,
-  `suffix`, `out_format`, `report_redacted`.
-- `ghost_txt()` — redact a `.txt` and write `.txt`/`.docx`/`.vtt`;
-  supports `redact_other`, `redact_interviewer`, `include_common_names`,
-  `redacted_token`, `add_blank_line_between_turns`, `output_path`,
-  `suffix`, `out_format`, `report_redacted`.
-- `ghost_batch()` — run the same logic across a folder of
-  `.vtt`/`.docx`/`.txt` files; supports `redact_other`,
-  `redact_interviewer`, `include_common_names`, `redacted_token`,
-  `add_blank_line_between_turns`, `output_dir`, `suffix`, `out_format`,
-  `report_redacted`.
+- `ghost()` opens a local Shiny app for `.vtt`, `.docx`, and `.txt`
+  transcripts.
+- The app asks for input/output directories, known interviewer names,
+  known participant names, and other terms to redact.
+- It scans the input directory, reviews likely names detected with local
+  rule-based matching, and writes redacted transcripts to the output
+  directory.
+- It also includes options for output format, filename suffix, redaction
+  token, blank lines between turns, console reports, common-name
+  redaction, and the completion notice.
 
-Common arguments (ghost_vtt/ghost_docx/ghost_txt):
-
-- `filepath`: input file path (`.vtt`/`.docx`/`.txt` respectively).
-- `interviewers`: character vector of interviewer names (required).
-- `interviewees`: character vector of participant names (optional).
-- `redact_other`: additional words/phrases to redact.
-- `redact_interviewer`: if `TRUE`, also redact interviewer names in
-  text.
-- `include_common_names`: if `TRUE`, include
-  `ghosted::common_names_default()` if available.
-- `redacted_token`: replacement token for redactions (default
-  `[REDACTED]`).
-- `add_blank_line_between_turns`: for DOCX/TXT outputs, insert a blank
-  line between turns.
-- `output_path`: explicit output file path; if `NULL`, uses input dir
-  with `suffix`.
-- `suffix`: appended to base name when auto-generating outputs (default
-  `"_redacted"`).
-- `out_format`: output type. Allowed values per function:
-  - `ghost_vtt()`: `"vtt"` (default), `"docx"`, `"txt"`
-  - `ghost_docx()`: `"docx"` (default), `"txt"`, `"vtt"`
-  - `ghost_txt()`: `"txt"` (default), `"docx"`, `"vtt"`
-- `report_redacted`: if `TRUE`, prints which phrases were found and
-  redacted.
+The app runs locally on your computer and does not use AI or remote
+services.
 
 ## Installation
 
@@ -67,50 +37,41 @@ remotes::install_github("abiraahmi/ghosted")
 # pak::pak("abiraahmi/ghosted")
 ```
 
-## Examples
+Installing `ghosted` also installs the runtime packages the app needs,
+including `shiny` for the app interface and `officer` for DOCX reads and
+writes.
+
+## Use
 
 ``` r
 library(ghosted)
 
-# VTT → DOCX (or "vtt"/"txt")
-ghost_vtt(
-  filepath     = "inst/data/sample.vtt",
-  interviewers = "Sansa Stark",
-  interviewees = "Arya Stark",
-  out_format   = "docx",
-  output_path  = "output/sample_DEID.docx",
-  suffix       = "_DEID"
-)
-
-# DOCX → DOCX
-ghost_docx(
-  filepath     = "inst/data/transcript.docx",
-  interviewers = "Sansa Stark",
-  interviewees = "Arya Stark",
-  output_path  = "output/transcript_DEID.docx"
-)
-
-# TXT → TXT
-ghost_txt(
-  filepath     = "inst/data/notes.txt",
-  interviewers = "Sansa Stark",
-  interviewees = "Arya Stark",
-  output_path  = "output/notes_DEID.txt"
-)
-
-# Batch a folder (keep file types)
-res <- ghost_batch(
-  input_dir    = "inst/data/transcripts",
-  interviewers = "Sansa Stark",
-  interviewees = "Arya Stark",
-  output_dir   = "output",
-  suffix       = "_DEID"
-)
-print(res)
+ghost()
 ```
 
-Notes - Leading speaker tokens at line start (e.g., `Name:` or
-`<v Name>`) are normalized to `Interviewer`/`Participant` while names
-elsewhere are redacted. - For DOCX/TXT → VTT conversions in
-`ghost_batch(out_format = "vtt")`, cues are written without
-timestamps. - Ensure `officer` is installed for `.docx` reads/writes.
+In the app:
+
+1.  Enter the input directory containing `.vtt`, `.docx`, or `.txt`
+    transcripts.
+2.  Enter an output directory, or leave it blank to write outputs next
+    to the input files.
+3.  Choose processing options, such as output format and redaction
+    token.
+4.  List known interviewer and participant names, plus any other terms
+    to redact.
+5.  Click **Scan directory**.
+6.  Review likely names and mark them as interviewer, participant, or
+    other.
+7.  Click **Redact transcripts**.
+
+When you run `ghost()` again in the same R session, the app preloads the
+directories, options, names, and likely-name selections from the
+previous run.
+
+## Notes
+
+- Leading speaker tokens at line start, such as `Name:` or `<v Name>`,
+  are normalized to `Interviewer` or `Participant`.
+- Names elsewhere in the transcript body are replaced with the selected
+  redaction token.
+- For DOCX/TXT to VTT output, cues are written without timestamps.
