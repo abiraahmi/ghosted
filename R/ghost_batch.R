@@ -2,9 +2,9 @@
 #'
 #' Scans a folder for transcript files and runs the appropriate redaction
 #' function per file type:
-#' - `.docx` -> [ghost_docx()]
-#' - `.txt`  -> [ghost_txt()]
-#' - `.vtt`  -> [ghost_vtt()]
+#' - `.docx` -> `ghost_docx()`
+#' - `.txt`  -> `ghost_txt()`
+#' - `.vtt`  -> `ghost_vtt()`
 #'
 #' Each file is dispatched to its single-file handler with `out_format`, so any
 #' format-conversion logic lives in one place (the per-format function).
@@ -31,7 +31,7 @@
 #' @param out_format Output format for all inputs; one of `"vtt"`, `"docx"`, or
 #'   `"txt"`. If `NULL` (default), each file keeps its original format. When a
 #'   `.docx`/`.txt` input is asked for `"vtt"`, cues are written without
-#'   timestamps (handled by [ghost_docx()]/[ghost_txt()]).
+#'   timestamps (handled by `ghost_docx()`/`ghost_txt()`).
 #' @param report_redacted If `TRUE`, print phrases found/redacted per file.
 #' @param review_names If `TRUE`, open one local Shiny app for the batch to
 #'   classify likely names detected across all files by rule-based matching as
@@ -51,7 +51,7 @@
 #' # Redact VTTs to DOCX, others keep their formats:
 #' # ghost_batch("inst/data/transcripts", interviewers = "Dr. Smith",
 #' #   interviewees = "Jane Doe", out_format = "docx")
-#' @export
+#' @noRd
 ghost_batch <- function(input_dir,
                         interviewers = character(),
                         interviewees = character(),
@@ -65,7 +65,7 @@ ghost_batch <- function(input_dir,
                         suffix = "_redacted",
                         out_format = NULL,
                         report_redacted = FALSE,
-                        review_names = interactive(),
+                        review_names = FALSE,
                         name_review_min_score = 2,
                         show_completion_notice = review_names) {
 

@@ -625,6 +625,7 @@ extract_regex_matches <- function(text, pattern, ignore.case = FALSE) {
 #' Normalize a candidate name span
 #' @noRd
 clean_name_candidate <- function(x) {
+  curly_apostrophe <- intToUtf8(0x2019)
   x <- gsub(
     "^\\s*(Name|Patient|Client|Participant|Subject|Speaker|Interviewer|Interviewee|Respondent|Signed by|Signature|Parent|Guardian|Contact)\\s*[:\\-]\\s*",
     "", x, perl = TRUE, ignore.case = TRUE
@@ -633,7 +634,8 @@ clean_name_candidate <- function(x) {
             perl = TRUE, ignore.case = TRUE)
   x <- gsub("\\s*(MD|PhD|PsyD|LCSW|RN|NP|Jr|Sr|II|III|IV)\\.?\\s*$", "",
             x, perl = TRUE, ignore.case = TRUE)
-  x <- gsub("(['’]s)\\b", "", x, perl = TRUE, ignore.case = TRUE)
+  x <- gsub(paste0("(['", curly_apostrophe, "]s)\\b"), "", x,
+            perl = TRUE, ignore.case = TRUE)
   trimws(gsub("^[[:punct:][:space:]]+|[[:punct:][:space:]]+$", "", x,
               perl = TRUE))
 }
@@ -665,6 +667,7 @@ strip_leading_common_candidate_words <- function(candidate) {
 #' Score a candidate name span
 #' @noRd
 score_name_candidate <- function(candidate, text) {
+  curly_apostrophe <- intToUtf8(0x2019)
   escaped <- escape_regex(candidate)
   count <- sum(grepl(escaped, text, perl = TRUE, ignore.case = TRUE))
   token_count <- length(strsplit(candidate, "\\s+", perl = TRUE)[[1]])
@@ -672,7 +675,8 @@ score_name_candidate <- function(candidate, text) {
   score <- 0L
   score <- score + min(count, 3L)
   score <- score + if (token_count >= 2L) 2L else 0L
-  score <- score + if (grepl("[-'’]", candidate, perl = TRUE)) 1L else 0L
+  score <- score + if (grepl(paste0("[-'", curly_apostrophe, "]"),
+                             candidate, perl = TRUE)) 1L else 0L
   score <- score + if (grepl("[^[:ascii:]]", candidate, perl = TRUE)) 1L else 0L
   score
 }
@@ -705,7 +709,9 @@ is_common_word_candidate <- function(candidate) {
 #' Find likely person names using local rules only
 #' @noRd
 find_likely_names <- function(text, min_score = 2) {
-  name_token <- "\\p{Lu}\\p{L}+(?:[-'’]\\p{Lu}?\\p{L}+)?"
+  curly_apostrophe <- intToUtf8(0x2019)
+  name_token <- paste0("\\p{Lu}\\p{L}+(?:[-'", curly_apostrophe,
+                       "]\\p{Lu}?\\p{L}+)?")
   particle <- "(?:al|bin|binti|da|de|del|della|der|di|dos|du|el|la|le|van|von)"
   name_piece <- paste0("(?:", name_token, "|", particle, ")")
   multi_name <- paste0("\\b", name_token, "(?:\\s+", name_piece, "){1,4}\\b")
@@ -765,242 +771,6 @@ parse_manual_redact_terms <- function(x) {
   unique(terms[nzchar(terms)])
 }
 
-#' Review candidate names in a local Shiny app
-#' @noRd
-review_name_candidates <- function(candidates,
-                                   known_interviewers = character(),
-                                   known_interviewees = character()) {
-  if (!requireNamespace("shiny", quietly = TRUE)) {
-    stop(
-      "The shiny package is required for the checkbox review app. ",
-      "Install it with install.packages('shiny')."
-    )
-  }
-
-  if (!nrow(candidates)) {
-    candidates <- data.frame(candidate = character(), score = integer(),
-                             stringsAsFactors = FALSE)
-  }
-  candidates$id <- seq_len(nrow(candidates))
-  nyu_purple <- "#57068C"
-
-  candidate_rows <- if (nrow(candidates)) {
-    lapply(seq_len(nrow(candidates)), function(i) {
-      shiny::tags$tr(
-        shiny::tags$td(
-          shiny::tags$strong(candidates$candidate[i]),
-          shiny::tags$span(class = "score",
-                           paste0("score ", candidates$score[i]))
-        ),
-        shiny::tags$td(
-          shiny::checkboxInput(paste0("interviewer_", i), NULL, value = FALSE)
-        ),
-        shiny::tags$td(
-          shiny::checkboxInput(paste0("participant_", i), NULL, value = FALSE)
-        ),
-        shiny::tags$td(
-          shiny::checkboxInput(paste0("other_", i), NULL, value = FALSE)
-        )
-      )
-    })
-  } else {
-    list(shiny::tags$tr(
-      shiny::tags$td(colspan = 4, class = "empty",
-                     "No likely names were detected. Add other terms below if needed.")
-    ))
-  }
-
-  ui <- shiny::fluidPage(
-    shiny::tags$head(
-      shiny::tags$style(shiny::HTML(paste0(
-        "
-        body {
-          font-family: Cambria, Georgia, serif;
-          max-width: 960px;
-          margin: 0 auto;
-          padding: 24px;
-          color: #1f1f1f;
-          background: #fafafa;
-        }
-        h2 {
-          color: ", nyu_purple, ";
-          font-weight: 700;
-        }
-        .btn-primary {
-          background-color: ", nyu_purple, ";
-          border-color: ", nyu_purple, ";
-        }
-        .btn-primary:hover,
-        .btn-primary:focus {
-          background-color: #41046b;
-          border-color: #41046b;
-        }
-        .review-panel {
-          padding: 16px;
-          border-left: 5px solid ", nyu_purple, ";
-          background: #ffffff;
-          overflow-x: auto;
-          box-sizing: border-box;
-        }
-        .warning-panel {
-          background: #f7f2fa;
-          border-left-color: ", nyu_purple, ";
-          margin-bottom: 16px;
-        }
-        table.review-table {
-          width: 100%;
-          min-width: 620px;
-          border-collapse: collapse;
-          table-layout: fixed;
-        }
-        .review-table th:first-child,
-        .review-table td:first-child {
-          width: 46%;
-        }
-        .review-table th:not(:first-child),
-        .review-table td:not(:first-child) {
-          width: 18%;
-        }
-        .review-table th {
-          color: ", nyu_purple, ";
-          border-bottom: 2px solid ", nyu_purple, ";
-          padding: 8px;
-          text-align: center;
-        }
-        .review-table th:first-child,
-        .review-table td:first-child {
-          text-align: left;
-        }
-        .review-table td {
-          border-bottom: 1px solid #e5e5e5;
-          padding: 8px;
-          text-align: center;
-          vertical-align: middle;
-          overflow-wrap: anywhere;
-        }
-        .review-table .checkbox {
-          margin: 0;
-        }
-        .score {
-          display: block;
-          color: #666666;
-          font-size: 12px;
-          margin-top: 2px;
-        }
-        .empty {
-          color: #666666;
-          padding: 18px;
-        }
-        .actions {
-          margin-top: 20px;
-          display: flex;
-          gap: 8px;
-        }
-        textarea {
-          min-height: 120px;
-        }
-        "
-      )))
-    ),
-    shiny::titlePanel("Review Likely Names"),
-    shiny::div(
-      class = "review-panel warning-panel",
-      shiny::tags$strong("Important: "),
-      "The candidate list below is based on regex rules for text that looks ",
-      "like names. It can miss names and can include false positives. The ",
-      "rules look for patterns such as capitalized words, ",
-      "speaker labels, and titles such as Dr., Mr., Ms., and Miss. ",
-      shiny::tags$strong("Strong recommendation: "),
-      "The safest way to redact while preserving speaker indexing is to list all ",
-      "known interviewer and participant names in the spaces below, keeping an eye on how participant names",
-      "appear in transcript files. If Zoom usernames differ from formal names, for example, this list may not",
-      "catch these cases" ,
-      "Ease your heart knowing that this app does not use AI and runs locally on your computer."
-    ),
-    shiny::hr(),
-    shiny::div(
-      class = "review-panel",
-      shiny::fluidRow(
-        shiny::column(
-          width = 6,
-          shiny::textAreaInput(
-            inputId = "manual_interviewers",
-            label = "Known interviewer names",
-            value = paste(known_interviewers, collapse = "\n"),
-            placeholder = "Enter one interviewer name per line."
-          )
-        ),
-        shiny::column(
-          width = 6,
-          shiny::textAreaInput(
-            inputId = "manual_interviewees",
-            label = "Known participant names",
-            value = paste(known_interviewees, collapse = "\n"),
-            placeholder = "Enter one participant name per line."
-          )
-        )
-      ),
-      shiny::hr(),
-      shiny::tags$table(
-        class = "review-table",
-        shiny::tags$thead(
-          shiny::tags$tr(
-            shiny::tags$th("Candidate"),
-            shiny::tags$th("Interviewer"),
-            shiny::tags$th("Participant"),
-            shiny::tags$th("Other")
-          )
-        ),
-        shiny::tags$tbody(candidate_rows)
-      ),
-      shiny::hr(),
-      shiny::textAreaInput(
-        inputId = "manual_other",
-        label = "Other terms to redact",
-        value = "",
-        placeholder = "Enter one term per line, or separate terms with commas/semicolons."
-      )
-    ),
-    shiny::div(
-      class = "actions",
-      shiny::actionButton("done", "Apply selections", class = "btn-primary"),
-      shiny::actionButton("cancel", "Cancel")
-    )
-  )
-
-  server <- function(input, output, session) {
-    shiny::observeEvent(input$done, {
-      checked <- function(prefix) {
-        if (!nrow(candidates)) return(character())
-        values <- vapply(seq_len(nrow(candidates)), function(i) {
-          isTRUE(input[[paste0(prefix, "_", i)]])
-        }, logical(1))
-        candidates$candidate[values]
-      }
-
-      shiny::stopApp(list(
-        interviewers = unique(c(checked("interviewer"),
-                                parse_manual_redact_terms(input$manual_interviewers))),
-        interviewees = unique(c(checked("participant"),
-                                parse_manual_redact_terms(input$manual_interviewees))),
-        other = unique(c(checked("other"),
-                         parse_manual_redact_terms(input$manual_other)))
-      ))
-    })
-
-    shiny::observeEvent(input$cancel, {
-      shiny::stopApp(list(
-        interviewers = character(),
-        interviewees = character(),
-        other = character()
-      ))
-    })
-  }
-
-  shiny::runApp(shiny::shinyApp(ui = ui, server = server),
-                launch.browser = launch_external_browser)
-}
-
 #' Add reviewed candidates to the role-aware redaction arguments
 #' @noRd
 review_redaction_terms <- function(text,
@@ -1016,14 +786,7 @@ review_redaction_terms <- function(text,
   )
 
   if (!isTRUE(review_names)) return(out)
-
-  candidates <- find_likely_names(text, min_score = min_score)
-  approved <- review_name_candidates(candidates, interviewers, interviewees)
-
-  out$interviewers <- unique(c(out$interviewers, approved$interviewers))
-  out$interviewees <- unique(c(out$interviewees, approved$interviewees))
-  out$redact_other <- unique(c(out$redact_other, approved$other))
-  out
+  stop("Name review is only available through ghost().", call. = FALSE)
 }
 
 #' Show a local completion notice after redaction finishes

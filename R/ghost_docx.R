@@ -3,7 +3,7 @@
 #' Reads a `.docx` file as raw paragraphs, applies in-function redaction, and writes a
 #' redacted file. No speaker/text data.frame is created; the document is treated
 #' as a sequence of paragraphs. You can choose the output format (DOCX/TXT/VTT)
-#' via `out_format` similar to [ghost_vtt()] and [ghost_batch()].
+#' via `out_format` similar to `ghost_vtt()` and `ghost_batch()`.
 #'
 #' @param filepath Path to a `.docx` file.
 #' @param interviewers Character vector of interviewer names.
@@ -49,7 +49,7 @@
 #' # With common names and redaction report:
 #' # ghost_docx("report.docx", interviewers = "Dr. Smith", interviewees = "Jane Doe",
 #' #   include_common_names = TRUE, report_redacted = TRUE)
-#' @export
+#' @noRd
 ghost_docx <- function(filepath,
                        interviewers = character(),
                        interviewees = character(),
@@ -62,7 +62,7 @@ ghost_docx <- function(filepath,
                        suffix = "_redacted",
                        out_format = c("docx", "txt", "vtt"),
                        report_redacted = FALSE,
-                       review_names = interactive(),
+                       review_names = FALSE,
                        name_review_min_score = 2,
                        show_completion_notice = review_names) {
 

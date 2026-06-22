@@ -5,8 +5,8 @@
 #' boundary-aware matching, and writes the result as a WebVTT, Word, or plain
 #' text file.
 #'
-#' Redaction mirrors the standalone logic used in [ghost_docx()] and
-#' [ghost_txt()]: full names are also split into parts (e.g., first/last and
+#' Redaction mirrors the standalone logic used in `ghost_docx()` and
+#' `ghost_txt()`: full names are also split into parts (e.g., first/last and
 #' hyphenated pieces) and replaced longest-first with tokens.
 #' For TXT and DOCX outputs, each cue timestamp is written on the line above
 #' the corresponding speaker/text line.
@@ -48,7 +48,7 @@
 #' # Write redacted DOCX with report:
 #' # ghost_vtt("meeting.vtt", interviewers = "Dr. Smith", interviewees = "Jane Doe",
 #' #   out_format = "docx", report_redacted = TRUE)
-#' @export
+#' @noRd
 ghost_vtt <- function(filepath,
                       interviewers = character(),
                       interviewees = character(),
@@ -61,7 +61,7 @@ ghost_vtt <- function(filepath,
                       suffix = "_redacted",
                       out_format = c("vtt", "docx", "txt"),
                       report_redacted = FALSE,
-                      review_names = interactive(),
+                      review_names = FALSE,
                       name_review_min_score = 2,
                       show_completion_notice = review_names) {
 

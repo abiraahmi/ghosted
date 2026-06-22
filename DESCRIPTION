@@ -1,6 +1,6 @@
 Package: ghosted
-Title: Deidentify & Batch Process Transcript Files
-Version: 0.0.2.0
+Title: Deidentify Transcript Files with a Local App
+Version: 0.1.0.0
 Authors@R: 
     c(
       person("Abiraahmi", "Shankar", email = "abiraahmi.shankar@nyu.edu", role = c("aut", "cre"),
@@ -8,21 +8,20 @@ Authors@R:
       person("Catalina", "Canizares", email = "cc9082@nyu.edu", role = c("aut", "ctb"),
              comment = c(ORCID = "0000-0002-6854-5205")),
       person("Francisco", "Cardozo", email = "foc9@miami.edu", role = c("aut", "ctb"),
-             comment = c(ORCID = "0000-0002-1925-4954")),
-        person("Pamela", "Morris-Perez", email = "pam7@nyu.edu", role = c("ctb"),
-             comment = c(ORCID = "0000-0003-3375-3458"))
+             comment = c(ORCID = "0000-0002-1925-4954"))
     )
-Description: Provides tools to parse, collapse, and deidentify WebVTT transcript files.
-    The package supports batch processing of transcripts, speaker relabeling,
-    name redaction, and export to formatted Word documents. Designed for use
-    in research workflows that require structured and reproducible transcript
-    deidentification.
+Description: Provides a local Shiny app for batch deidentification of transcript
+    files. The app scans folders of WebVTT, Word, and plain-text transcripts,
+    supports speaker relabeling, name and term redaction, likely-name review,
+    and export to redacted transcript files. Designed for research workflows
+    that require local, reproducible transcript deidentification.
 License: Apache License (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
-    officer
+    officer,
+    shiny
 URL: https://abiraahmi.github.io/ghosted/
 Suggests:
     testthat (>= 3.0.0),
@@ -30,7 +29,6 @@ Suggests:
     knitr,
     rmarkdown,
     pkgdown,
-    shiny,
     yaml,
     roxygen2 (>= 7.3.2)
 VignetteBuilder: knitr
