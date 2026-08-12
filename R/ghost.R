@@ -203,6 +203,15 @@ ghost_review_app <- function(input_dir = NULL,
         .intro-panel {
           background: #f7f2fa;
         }
+        .name-review-note {
+          background: #f7f2fa;
+          border-left: 5px solid ", nyu_purple, ";
+          padding: 12px 14px;
+          margin: 0 0 16px 0;
+        }
+        .name-review-note p {
+          margin: 0;
+        }
         .status {
           color: #555555;
           margin-top: 8px;
@@ -463,6 +472,13 @@ ghost_review_app <- function(input_dir = NULL,
       shiny::div(
         class = "help-text",
         "These candidates are detected locally with rule-based matching. Check Interviewer, Participant, or Other to add a candidate to the corresponding redaction list for every transcript in the batch."
+      ),
+      shiny::div(
+        class = "name-review-note",
+        shiny::tags$p(
+          shiny::tags$strong("Multi-word candidates: "),
+          "Interviewer and Participant redact both the full name and each name part wherever it appears. For example, selecting 'Sansa Stark' also redacts 'Sansa' and 'Stark' separately. Other redacts only the complete phrase 'Sansa Stark'."
+        )
       ),
       shiny::uiOutput("candidate_table")
     ),
